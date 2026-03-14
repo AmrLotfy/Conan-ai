@@ -1,11 +1,5 @@
 <div align="center">
 
-```
-  ╔═══════════════════════════════╗
-  ║       🔍 CONAN AI AGENT       ║
-  ╚═══════════════════════════════╝
-```
-
 # Conan — Personal AI Agent Framework
 
 **The agent that always finds the answer.**
