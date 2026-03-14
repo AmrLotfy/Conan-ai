@@ -1,8 +1,35 @@
-# 🔍 Conan — Personal AI Agent Framework
+<div align="center">
 
-> The agent that always finds the answer.
+```
+  ╔═══════════════════════════════╗
+  ║       🔍 CONAN AI AGENT       ║
+  ╚═══════════════════════════════╝
+```
 
-Conan is an open source Node.js framework for building personal AI agents that run in your terminal. Install it, configure it in 60 seconds, and start chatting with an agent that remembers you, manages your reminders, reads the web, and can be extended with skills.
+# Conan — Personal AI Agent Framework
+
+**The agent that always finds the answer.**
+
+[![npm](https://img.shields.io/npm/v/conan-ai?color=crimson&label=npm)](https://www.npmjs.com/package/conan-ai)
+[![License: MIT](https://img.shields.io/badge/license-MIT-gold.svg)](LICENSE)
+[![Node](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org)
+[![Open Source](https://img.shields.io/badge/open%20source-%E2%9D%A4-red)](https://github.com/AmrLotfy/Conan-ai)
+
+An open source Node.js CLI framework for building personal AI agents.
+Runs in your terminal. Remembers you. Searches the web. Reads your files. Fires reminders.
+**Local-first. No cloud. No accounts. Your key, your cost.**
+
+[**Install**](#install) · [**Skills**](#skills) · [**Connectors**](#connectors) · [**Build a Skill**](#build-your-own-skill)
+
+</div>
+
+---
+
+## What is Conan?
+
+Conan is a personal AI agent you run locally. It connects to any LLM (OpenAI, Anthropic, or OpenRouter), remembers facts about you across sessions, executes tools called **skills**, and can run in your terminal or as a Telegram bot.
+
+Named after the beloved Arab cartoon detective — **كونان** — who always finds the answer.
 
 ```
 $ conan chat
@@ -10,29 +37,22 @@ $ conan chat
   ╔═══════════════════════════════╗
   ║       🔍 CONAN AI AGENT       ║
   ╚═══════════════════════════════╝
+  Model: openai/gpt-4o-mini  ·  Timezone: Africa/Cairo
 
 You: what's the weather in Cairo?
 Conan: ☀️ Cairo, EG — 28°C, clear sky. Feels like 27°C · Humidity 30% · Wind 12 km/h
 
-You: remind me in 2 hours to review the PR
-Conan: ✅ Reminder set for 6:00 PM — "review the PR". I've got you covered!
+You: search for latest AI news
+Conan: 🔎 Here's what's happening in AI today...
+       1. GPT-5 announced — OpenAI reveals next model
+          🔗 techcrunch.com/...
 
 You: remember that I work at Hollat as a backend developer
 Conan: Got it! I'll remember that you work at Hollat as a backend developer.
 
-You: read this url https://example.com
-Conan: Here's what's on that page...
+You: remind me in 2 hours to review the PR
+Conan: ✅ Reminder set for 6:00 PM — "review the PR". I've got you covered!
 ```
-
----
-
-## Why Conan?
-
-- **Simple** — one command to install, one command to chat
-- **Extensible** — install skills from npm like `conan skill install conan-skill-weather`
-- **Local-first** — all your data stays on your machine (SQLite, no cloud)
-- **Multi-provider** — use OpenAI, Anthropic (Claude), or OpenRouter (all models with one key)
-- **Your key, your cost** — bring your own API key, pay only for what you use
 
 ---
 
@@ -44,89 +64,106 @@ conan init
 conan chat
 ```
 
-That's it.
+That's it. `conan init` walks you through choosing your AI provider and entering your API key — done in 60 seconds.
 
----
-
-## Setup
-
-`conan init` will walk you through:
-
-- Your name
-- **AI provider** — pick one:
-  - **OpenRouter** — one key for GPT-4o, Claude, Mistral, Gemini and more → [openrouter.ai](https://openrouter.ai)
-  - **OpenAI** — your own ChatGPT API key → [platform.openai.com](https://platform.openai.com)
-  - **Anthropic** — your own Claude API key → [console.anthropic.com](https://console.anthropic.com)
-- Your timezone
-- Your preferred AI model
-- Optional: weather API key (free at [openweathermap.org](https://openweathermap.org))
-
-> **Which provider should I choose?**
-> - OpenRouter is great if you want to try different models without multiple accounts.
-> - OpenAI direct if you already have a ChatGPT API key.
-> - Anthropic direct if you already have a Claude API key.
-> You can switch anytime with `conan config set provider openai` (or `anthropic` / `openrouter`).
+> **Supported providers:** OpenRouter · OpenAI · Anthropic
 
 ---
 
 ## Commands
 
 ```bash
-# Chat
-conan chat                        # Start interactive session
-conan ask "what day is it?"       # One-shot query (scriptable)
+# Start chatting
+conan chat                         # Interactive terminal session
+conan ask "what time is it?"       # One-shot query (scriptable, pipe-friendly)
+
+# Run as a bot
+conan serve --telegram             # Run as a Telegram bot
 
 # Skills
-conan skill list                  # Show active skills
-conan skill install <package>     # Install a skill from npm
-conan skill remove <package>      # Remove a skill
+conan skill list                   # Show all active skills
+conan skill install <package>      # Install a skill from npm
+conan skill remove <package>       # Remove a skill
+conan skill new <name>             # Scaffold a new skill package
 
 # Memory
-conan memory list                 # See what Conan remembers about you
-conan memory forget <id>          # Delete a memory
+conan memory list                  # See what Conan remembers about you
+conan memory forget <id>           # Delete a memory by ID
 
 # Config
-conan config show                 # Show current config
-conan config set <key> <value>    # Update a value
+conan config show                  # Show current configuration
+conan config set <key> <value>     # Update any config value
+
+# Background daemon
+conan daemon start                 # Start reminder daemon (fires OS notifications)
+conan daemon stop                  # Stop daemon
+conan daemon status                # Show daemon status + pending reminders
 ```
 
-### In-chat commands
+### In-chat slash commands
+
 ```
-/new      Start a fresh session
-/memory   List your memories
+/new      Start a fresh session (clears context)
+/memory   List stored memories
 /help     Show available commands
-/exit     Quit
+/exit     Quit Conan
 ```
 
 ---
 
-## Built-in Skills
+## Skills
 
-These are always active — no setup needed:
+Skills are the tools Conan uses to take action. Built-in skills are always active — installable skills extend what Conan can do.
 
-| Skill | What it does |
-|---|---|
-| 🕐 Time | Current date and time in your timezone |
-| 🧠 Memory | Remembers facts about you across sessions |
-| ⏰ Reminders | Set reminders by time or relative ("in 2 hours") |
-| 🌐 URL Reader | Read and summarize any public webpage |
+### Built-in (always active)
 
----
+| Skill | Tool | What it does |
+|---|---|---|
+| 🕐 Time | `get_current_time` | Current date and time in your timezone |
+| 🧠 Memory | `memory` | Remember and recall facts across sessions |
+| ⏰ Reminders | `set_reminder` | Set timed reminders — fires in-terminal or via daemon |
+| 🌐 URL Reader | `read_url` | Fetch and summarize any public webpage |
 
-## Installable Skills
-
-Extend Conan with skills published on npm:
+### Installable
 
 ```bash
 conan skill install conan-skill-weather
+conan skill install conan-skill-web-search
+conan skill install conan-skill-news
+conan skill install conan-skill-file-reader
 ```
 
-| Package | What it adds | API Key |
+| Package | What it adds | API Key needed |
 |---|---|---|
-| [conan-skill-weather](https://github.com/AmrLotfy/conan-skill-weather) | Real-time weather + 3-day forecast | OpenWeatherMap (free) |
-| conan-skill-web-search | Search the web for real-time info + sources | Tavily (free tier) |
-| conan-skill-news | Top headlines by topic, supports Arabic sources | NewsAPI (free tier) |
-| conan-skill-file-reader | Read & summarize local files (log, json, csv, code…) | None — fully local |
+| [conan-skill-weather](https://github.com/AmrLotfy/conan-skill-weather) | Real-time weather + 3-day forecast for any city | OpenWeatherMap (free) |
+| [conan-skill-web-search](https://github.com/AmrLotfy/conan-skill-web-search) | Search the web with real-time results and sources | Tavily (free tier) |
+| [conan-skill-news](https://github.com/AmrLotfy/conan-skill-news) | Top headlines — tech, world, sports, Arabic sources | NewsAPI (free tier) |
+| [conan-skill-file-reader](https://github.com/AmrLotfy/conan-skill-file-reader) | Read and summarize local files (log, json, csv, code…) | None — fully local |
+
+---
+
+## Connectors
+
+Connectors let Conan run on messaging platforms beyond the terminal.
+
+| Connector | Command | Status |
+|---|---|---|
+| Terminal REPL | `conan chat` | ✅ Built-in |
+| Telegram | `conan serve --telegram` | ✅ Available |
+| Discord | `conan serve --discord` | Coming soon |
+
+### Telegram setup
+
+```bash
+# 1. Create a bot via @BotFather on Telegram
+# 2. Copy the token
+conan config set telegramToken YOUR_TOKEN
+
+# 3. Start the bot
+conan serve --telegram
+```
+
+Conan will start listening via long polling — no server or public URL needed.
 
 ---
 
@@ -138,7 +175,7 @@ Any npm package that exports this shape works as a Conan skill:
 // conan-skill-example/index.js
 module.exports = {
   name: 'my_skill',
-  description: 'What this skill does',
+  description: 'What this skill does — the LLM reads this.',
   parameters: {
     type: 'object',
     properties: {
@@ -147,39 +184,48 @@ module.exports = {
     required: ['query']
   },
   async execute(args, context) {
-    // context.config → user config
-    // context.memory → memory store
-    return `Result for: ${args.query}`
+    // context.config → user config (~/.conan/config.json)
+    // context.memory → memory store (remember/recall/list/forget)
+    return `Result: ${args.query}`
   }
 }
 ```
 
-Publish it to npm as `conan-skill-yourname` and anyone can install it with:
+**Scaffold a new skill:**
 ```bash
-conan skill install conan-skill-yourname
+conan skill new my-skill
+# Creates conan-skill-my-skill/ with index.js, package.json, README
+```
+
+**Publish and share:**
+```bash
+cd conan-skill-my-skill
+npm publish
+# Anyone can now: conan skill install conan-skill-my-skill
 ```
 
 ---
 
 ## Config Reference
 
-All config lives in `~/.conan/config.json`:
+All config lives in `~/.conan/config.json`. No `.env` files, no cloud sync.
 
 | Key | Description |
 |---|---|
 | `name` | Your name |
-| `provider` | LLM provider: `openrouter`, `openai`, or `anthropic` |
-| `openrouterKey` | OpenRouter API key (if using OpenRouter) |
-| `openaiKey` | OpenAI API key (if using OpenAI direct) |
-| `anthropicKey` | Anthropic API key (if using Anthropic direct) |
-| `timezone` | IANA timezone (e.g. `Africa/Cairo`) |
+| `provider` | LLM provider: `openrouter` · `openai` · `anthropic` |
+| `openrouterKey` | OpenRouter API key |
+| `openaiKey` | OpenAI API key |
+| `anthropicKey` | Anthropic API key |
+| `telegramToken` | Telegram bot token (for `conan serve --telegram`) |
+| `timezone` | IANA timezone (e.g. `Africa/Cairo`, `America/New_York`) |
 | `model` | AI model (e.g. `gpt-4o-mini`, `claude-3-5-haiku-20241022`) |
-| `weatherKey` | OpenWeatherMap API key (optional) |
-| `tavilyKey` | Tavily Search API key (optional, for web search) |
-| `newsApiKey` | NewsAPI key (optional, for news headlines) |
+| `weatherKey` | OpenWeatherMap API key (for conan-skill-weather) |
+| `tavilyKey` | Tavily API key (for conan-skill-web-search) |
+| `newsApiKey` | NewsAPI key (for conan-skill-news) |
 | `skills` | List of installed skill packages |
 
-Switch provider or model anytime:
+Switch anything anytime:
 ```bash
 conan config set provider anthropic
 conan config set model claude-3-5-haiku-20241022
@@ -187,17 +233,31 @@ conan config set model claude-3-5-haiku-20241022
 
 ---
 
-## Data & Privacy
+## Architecture
 
-- All data is stored locally in `~/.conan/`
-- `config.json` — your settings and API keys
-- `conan.db` — SQLite database (memories, chat history, reminders)
-- Nothing is sent to any server except your LLM API calls (OpenRouter / OpenAI / Anthropic)
+Conan follows the **6-pillar AI agent architecture**:
+
+| Pillar | Implementation |
+|---|---|
+| Chat Connectors | Terminal REPL · Telegram bot |
+| LLM Brain | OpenRouter / OpenAI / Anthropic via `core/llm.js` |
+| Persistent Memory | SQLite `memories` table via `core/memory.js` |
+| Skill/Tool System | `core/skill-registry.js` — register, execute, toolDefinitions |
+| Agentic Loop | `core/agent.js` — up to 5 tool-call iterations per message |
+| Proactive Scheduler | `conan daemon` — polls reminders every 30s, fires OS notifications |
 
 ---
 
-## Built by
+## Privacy
 
-**Amr Lotfy** — [GitHub](https://github.com/AmrLotfy) · [LinkedIn](https://www.linkedin.com/in/amr-lotfy-saleh-09438b113/)
+- All data is stored locally in `~/.conan/`
+  - `config.json` — your settings and API keys
+  - `conan.db` — SQLite (memories, chat history, reminders)
+- Nothing is sent to any server except your LLM provider API calls
+- No accounts, no telemetry, no cloud
 
-MIT License
+---
+
+## License
+
+MIT · Built by [Amr Lotfy](https://github.com/AmrLotfy) @ [Hollat](https://hollat.net)

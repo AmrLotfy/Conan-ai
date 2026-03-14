@@ -449,6 +449,20 @@ cfgCmd
     console.log('')
   })
 
+// ─── conan serve ──────────────────────────────────────────────────────────────
+program
+  .command('serve')
+  .description('Run Conan as a bot on a messaging platform')
+  .option('--telegram', 'Run as a Telegram bot (requires telegramToken in config)')
+  .action(async (opts) => {
+    if (opts.telegram) {
+      const telegram = require('../connectors/telegram')
+      await telegram.start()
+    } else {
+      console.log(chalk.yellow('\n  Specify a connector: conan serve --telegram\n'))
+    }
+  })
+
 // ─── conan daemon ─────────────────────────────────────────────────────────────
 const daemonCmd = program.command('daemon').description('Manage the background reminder daemon')
 
