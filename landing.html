@@ -371,7 +371,7 @@
     الذكاء الذي <span class="red">يحقق</span> وينفذ
   </h1>
 
-  <p class="hero-sub reveal d4">
+  <p class="hero-sub reveal d4" style="margin-top:2.2rem">
     مساعد AI يعمل على جهازك مباشرةً. يتذكر كل شيء،
     يبحث في الويب، يقرأ ملفاتك، وينفّذ المهام قبل ما تكمل السؤال.
     <strong>مفتوح المصدر، محلي بالكامل.</strong>
@@ -382,10 +382,20 @@
     <button class="btn-outline" onclick="window.open('https://github.com/AmrLotfy/Conan-ai','_blank')">⭐ GitHub</button>
   </div>
 
-  <div class="install-block reveal d6" dir="ltr">
-    <span class="install-prompt">$</span>
-    <span>npm install -g conan-ai</span>
-    <button class="copy-btn" onclick="navigator.clipboard.writeText('npm install -g conan-ai');this.textContent='✓ تم'">نسخ</button>
+  <div style="display:flex;flex-direction:column;align-items:center;gap:.75rem" class="reveal d6">
+    <div class="install-block" dir="ltr">
+      <span class="install-prompt">$</span>
+      <span>npm install -g conan-ai</span>
+      <button class="copy-btn" onclick="navigator.clipboard.writeText('npm install -g conan-ai');this.textContent='✓ تم'">نسخ</button>
+    </div>
+    <div style="display:flex;gap:1rem;align-items:center">
+      <span style="font-size:.75rem;color:#444">يعمل على:</span>
+      <span style="font-size:.8rem;color:var(--steel)">🍎 macOS</span>
+      <span style="color:#333;font-size:.7rem">·</span>
+      <span style="font-size:.8rem;color:var(--steel)">🐧 Linux</span>
+      <span style="color:#333;font-size:.7rem">·</span>
+      <span style="font-size:.8rem;color:var(--steel)">🪟 Windows</span>
+    </div>
   </div>
 </section>
 
