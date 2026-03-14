@@ -36,10 +36,41 @@ program
         default: existing.name !== 'there' ? existing.name : '',
       },
       {
-        type:    'input',
-        name:    'openrouterKey',
-        message: 'OpenRouter API key (get one free at openrouter.ai):',
-        default: existing.openrouterKey || '',
+        type:    'list',
+        name:    'provider',
+        message: 'Which AI provider do you want to use?',
+        default: existing.provider || 'openrouter',
+        choices: [
+          { name: 'OpenRouter  — one key for GPT-4o, Claude, Mistral & more (openrouter.ai)', value: 'openrouter' },
+          { name: 'OpenAI     — your own ChatGPT API key (platform.openai.com)',               value: 'openai'      },
+          { name: 'Anthropic  — your own Claude API key (console.anthropic.com)',              value: 'anthropic'   },
+        ],
+      },
+      // OpenRouter key
+      {
+        type:     'input',
+        name:     'openrouterKey',
+        message:  'OpenRouter API key:',
+        default:  existing.openrouterKey || '',
+        when:     (a) => a.provider === 'openrouter',
+        validate: v => v.trim().length > 0 ? true : 'API key is required',
+      },
+      // OpenAI key
+      {
+        type:     'input',
+        name:     'openaiKey',
+        message:  'OpenAI API key (sk-...):',
+        default:  existing.openaiKey || '',
+        when:     (a) => a.provider === 'openai',
+        validate: v => v.trim().length > 0 ? true : 'API key is required',
+      },
+      // Anthropic key
+      {
+        type:     'input',
+        name:     'anthropicKey',
+        message:  'Anthropic API key (sk-ant-...):',
+        default:  existing.anthropicKey || '',
+        when:     (a) => a.provider === 'anthropic',
         validate: v => v.trim().length > 0 ? true : 'API key is required',
       },
       {
@@ -48,23 +79,51 @@ program
         message: 'Your timezone (IANA format, e.g. Africa/Cairo, America/New_York):',
         default: existing.timezone || 'UTC',
       },
+      // Model choices for OpenRouter
       {
         type:    'list',
         name:    'model',
         message: 'Which AI model to use?',
         default: existing.model || 'openai/gpt-4o-mini',
+        when:    (a) => a.provider === 'openrouter',
         choices: [
-          { name: 'GPT-4o Mini (fast, cheap — recommended)', value: 'openai/gpt-4o-mini' },
-          { name: 'GPT-4o (powerful, slower)',               value: 'openai/gpt-4o' },
-          { name: 'Claude 3.5 Haiku (fast Anthropic model)', value: 'anthropic/claude-3-5-haiku' },
-          { name: 'Claude 3.7 Sonnet (powerful Anthropic)',  value: 'anthropic/claude-3-7-sonnet' },
-          { name: 'Other (enter manually)',                   value: '__other__' },
+          { name: 'GPT-4o Mini   (fast, cheap — recommended)', value: 'openai/gpt-4o-mini'          },
+          { name: 'GPT-4o        (powerful, slower)',           value: 'openai/gpt-4o'               },
+          { name: 'Claude Haiku  (fast Anthropic model)',       value: 'anthropic/claude-3-5-haiku'  },
+          { name: 'Claude Sonnet (powerful Anthropic)',         value: 'anthropic/claude-3-7-sonnet' },
+          { name: 'Other (enter manually)',                     value: '__other__'                   },
+        ],
+      },
+      // Model choices for OpenAI direct
+      {
+        type:    'list',
+        name:    'model',
+        message: 'Which OpenAI model to use?',
+        default: existing.model || 'gpt-4o-mini',
+        when:    (a) => a.provider === 'openai',
+        choices: [
+          { name: 'gpt-4o-mini (fast, cheap — recommended)', value: 'gpt-4o-mini' },
+          { name: 'gpt-4o     (powerful, slower)',            value: 'gpt-4o'      },
+          { name: 'Other (enter manually)',                   value: '__other__'   },
+        ],
+      },
+      // Model choices for Anthropic direct
+      {
+        type:    'list',
+        name:    'model',
+        message: 'Which Claude model to use?',
+        default: existing.model || 'claude-3-5-haiku-20241022',
+        when:    (a) => a.provider === 'anthropic',
+        choices: [
+          { name: 'claude-3-5-haiku-20241022  (fast, cheap — recommended)', value: 'claude-3-5-haiku-20241022'  },
+          { name: 'claude-3-7-sonnet-20250219 (powerful, slower)',           value: 'claude-3-7-sonnet-20250219' },
+          { name: 'Other (enter manually)',                                  value: '__other__'                  },
         ],
       },
       {
         type:    'input',
         name:    'customModel',
-        message: 'Enter model name (e.g. mistralai/mistral-7b-instruct):',
+        message: 'Enter model name:',
         when:    (a) => a.model === '__other__',
         validate: v => v.trim().length > 0 ? true : 'Model name is required',
       },
@@ -85,13 +144,19 @@ program
 
     const finalConfig = {
       ...existing,
-      name:          answers.name.trim() || 'there',
-      openrouterKey: answers.openrouterKey.trim(),
-      timezone:      answers.timezone.trim() || 'UTC',
-      model:         answers.model === '__other__'
-                       ? answers.customModel.trim()
-                       : answers.model,
+      name:     answers.name.trim() || 'there',
+      provider: answers.provider,
+      timezone: answers.timezone.trim() || 'UTC',
+      model:    answers.model === '__other__' ? answers.customModel.trim() : answers.model,
     }
+
+    // Save the right key for the chosen provider
+    if (answers.provider === 'openrouter' && answers.openrouterKey)
+      finalConfig.openrouterKey = answers.openrouterKey.trim()
+    if (answers.provider === 'openai' && answers.openaiKey)
+      finalConfig.openaiKey = answers.openaiKey.trim()
+    if (answers.provider === 'anthropic' && answers.anthropicKey)
+      finalConfig.anthropicKey = answers.anthropicKey.trim()
 
     // Save weather key if provided
     if (answers.wantWeather && answers.weatherKey?.trim()) {
@@ -269,8 +334,9 @@ cfgCmd
   .action(() => {
     const cfg = config.load()
     console.log(chalk.cyan('\n  ⚙ Configuration:\n'))
+    const KEY_FIELDS = new Set(['openrouterKey', 'openaiKey', 'anthropicKey', 'weatherKey'])
     Object.entries(cfg).forEach(([k, v]) => {
-      const display = k === 'openrouterKey' && v
+      const display = KEY_FIELDS.has(k) && v
         ? v.slice(0, 8) + '...' + v.slice(-4)
         : JSON.stringify(v)
       console.log(`  ${chalk.gray(k.padEnd(20))} ${display}`)

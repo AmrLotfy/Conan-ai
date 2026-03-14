@@ -54,7 +54,11 @@ function set(key, value) {
 }
 
 function isInitialized() {
-  return fs.existsSync(CONFIG_FILE) && !!get('openrouterKey')
+  if (!fs.existsSync(CONFIG_FILE)) return false
+  const cfg = load()
+  const provider = cfg.provider || 'openrouter'
+  const keyMap = { openrouter: 'openrouterKey', openai: 'openaiKey', anthropic: 'anthropicKey' }
+  return !!cfg[keyMap[provider] || 'openrouterKey']
 }
 
 function getConanDir() {

@@ -10,6 +10,7 @@ const ora      = require('ora')
 const agent    = require('../core/agent')
 const history  = require('../core/history')
 const config   = require('../core/config')
+const { getDb } = require('../core/db')
 
 function printWelcome(cfg) {
   console.log('')
@@ -114,6 +115,36 @@ async function start() {
       rl.resume()
     }
   }
+
+  // ── Reminder checker — polls every 30s, fires due reminders inline ──────────
+  const checkReminders = () => {
+    try {
+      const db  = getDb()
+      const now = new Date().toISOString()
+      const due = db.prepare(
+        `SELECT * FROM reminders WHERE fired = 0 AND fire_at <= ? ORDER BY fire_at ASC`
+      ).all(now)
+
+      if (due.length > 0) {
+        // Print above the current prompt line
+        process.stdout.write('\n')
+        due.forEach(r => {
+          console.log(chalk.yellow('  ⏰ Reminder: ') + chalk.white(r.message))
+          db.prepare('UPDATE reminders SET fired = 1 WHERE id = ?').run(r.id)
+        })
+        process.stdout.write('\n')
+      }
+    } catch {
+      // silently ignore DB errors during reminder check
+    }
+  }
+
+  // Check immediately on start, then every 30 seconds
+  checkReminders()
+  const reminderInterval = setInterval(checkReminders, 30_000)
+
+  // Clean up interval when process exits
+  process.on('exit', () => clearInterval(reminderInterval))
 
   loop()
 }
