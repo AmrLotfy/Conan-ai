@@ -317,6 +317,111 @@ skillCmd
     console.log(chalk.gray(`  Note: Run "npm uninstall -g ${pkg}" to fully remove the package.\n`))
   })
 
+skillCmd
+  .command('new <name>')
+  .description('Scaffold a new skill package (creates conan-skill-<name>/ folder)')
+  .action((name) => {
+    const fs   = require('fs')
+    const path = require('path')
+
+    // Normalize: strip "conan-skill-" prefix if user included it
+    const shortName = name.replace(/^conan-skill-/, '')
+    const pkgName   = `conan-skill-${shortName}`
+    const dir       = path.join(process.cwd(), pkgName)
+
+    if (fs.existsSync(dir)) {
+      console.log(chalk.red(`\n  ❌ Directory "${pkgName}" already exists.\n`))
+      process.exit(1)
+    }
+
+    fs.mkdirSync(dir, { recursive: true })
+
+    // package.json
+    const pkg = {
+      name:        pkgName,
+      version:     '1.0.0',
+      description: `${pkgName} — a skill for Conan AI`,
+      main:        'index.js',
+      keywords:    ['conan-skill', shortName, 'ai-agent', 'conan-ai'],
+      author:      '',
+      license:     'MIT',
+      type:        'commonjs',
+    }
+    fs.writeFileSync(path.join(dir, 'package.json'), JSON.stringify(pkg, null, 2))
+
+    // index.js — skill template
+    const indexJs = `/**
+ * ${pkgName}
+ * A skill for Conan AI agent.
+ *
+ * Install: conan skill install ${pkgName}
+ */
+
+module.exports = {
+  name: '${shortName.replace(/-/g, '_')}',
+  description: 'Describe what this skill does.',
+  parameters: {
+    type: 'object',
+    properties: {
+      query: {
+        type: 'string',
+        description: 'The input for this skill.',
+      },
+    },
+    required: ['query'],
+  },
+
+  async execute(args, context) {
+    const { query } = args
+    // context.config → user config (~/.conan/config.json)
+    // context.memory → memory store (remember/recall/list/forget)
+
+    // TODO: implement your skill logic here
+    return \`Result for: \${query}\`
+  },
+}
+`
+    fs.writeFileSync(path.join(dir, 'index.js'), indexJs)
+
+    // README.md
+    const readme = `# ${pkgName}
+
+> A skill for [Conan AI](https://github.com/AmrLotfy/conan-ai).
+
+## Install
+
+\`\`\`bash
+conan skill install ${pkgName}
+\`\`\`
+
+## What it does
+
+<!-- Describe your skill here -->
+
+## Config
+
+<!-- List any API keys or config values needed, e.g.: -->
+<!-- \`conan config set myKey YOUR_KEY\` -->
+
+## License
+
+MIT
+`
+    fs.writeFileSync(path.join(dir, 'README.md'), readme)
+
+    console.log(chalk.cyan(`\n  🔧 Skill scaffolded: ${pkgName}/\n`))
+    console.log(`  ${chalk.gray('├──')} ${chalk.white('index.js')}      ${chalk.gray('← skill logic (edit this)')}`)
+    console.log(`  ${chalk.gray('├──')} ${chalk.white('package.json')}  ${chalk.gray('← package metadata')}`)
+    console.log(`  ${chalk.gray('└──')} ${chalk.white('README.md')}     ${chalk.gray('← documentation')}`)
+    console.log('')
+    console.log(chalk.yellow('  Next steps:'))
+    console.log(chalk.gray(`    1. cd ${pkgName}`))
+    console.log(chalk.gray('    2. Edit index.js — implement your execute() function'))
+    console.log(chalk.gray('    3. npm publish  (when ready to share)'))
+    console.log(chalk.gray(`    4. conan skill install ${pkgName}  (to use locally)`))
+    console.log('')
+  })
+
 // ─── conan config ────────────────────────────────────────────────────────────
 const cfgCmd = program.command('config').description('Manage configuration')
 
@@ -343,6 +448,39 @@ cfgCmd
     })
     console.log('')
   })
+
+// ─── conan daemon ─────────────────────────────────────────────────────────────
+const daemonCmd = program.command('daemon').description('Manage the background reminder daemon')
+
+daemonCmd
+  .command('start')
+  .description('Start the background daemon (checks reminders every 30s)')
+  .action(() => {
+    const daemon = require('../core/daemon')
+    daemon.start()
+  })
+
+daemonCmd
+  .command('stop')
+  .description('Stop the running daemon')
+  .action(() => {
+    const daemon = require('../core/daemon')
+    daemon.stop()
+  })
+
+daemonCmd
+  .command('status')
+  .description('Show daemon status and pending reminders')
+  .action(() => {
+    const daemon = require('../core/daemon')
+    daemon.status()
+  })
+
+// Shortcut: "conan daemon" with no subcommand → start
+daemonCmd.action(() => {
+  const daemon = require('../core/daemon')
+  daemon.start()
+})
 
 program.parse(process.argv)
 
