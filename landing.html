@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CONAN — المحقق الذكي</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --midnight: #050a18;
+    --navy:     #0a1628;
+    --navy2:    #0f2040;
+    --crimson:  #c0392b;
+    --crimson2: #e74c3c;
+    --gold:     #f0c040;
+    --gold2:    #ffd700;
+    --steel:    #8899bb;
+    --pale:     #ccd6f6;
+    --glass:    rgba(15,32,64,0.7);
+    --glow:     0 0 30px rgba(192,57,43,0.3);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--midnight);
+    color: var(--pale);
+    font-family: 'Cairo','Tajawal',sans-serif;
+    overflow-x: hidden;
+    direction: rtl;
+  }
+
+  /* Grid background */
+  body::before {
+    content:''; position:fixed; inset:0;
+    background-image:
+      linear-gradient(rgba(192,57,43,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(192,57,43,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events:none; z-index:0;
+  }
+
+  /* Radial glow top-right */
+  body::after {
+    content:''; position:fixed;
+    top:-20%; right:-10%;
+    width:70vw; height:70vw;
+    background: radial-gradient(circle, rgba(192,57,43,0.08) 0%, transparent 70%);
+    pointer-events:none; z-index:0;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:1rem 4rem;
+    background:rgba(5,10,24,0.92);
+    backdrop-filter:blur(20px);
+    border-bottom:1px solid rgba(192,57,43,0.2);
+  }
+  .logo {
+    display:flex; align-items:center; gap:12px;
+    font-size:1.9rem; font-weight:900; color:var(--gold);
+    letter-spacing:4px; text-shadow:0 0 24px rgba(240,192,64,0.5);
+    text-decoration:none;
+  }
+  .logo-icon { font-size:2rem; animation:spin-slow 10s linear infinite; display:inline-block; }
+  @keyframes spin-slow { 100%{transform:rotate(360deg)} }
+
+  .nav-links { display:flex; gap:2rem; list-style:none; font-size:0.95rem; font-weight:500; }
+  .nav-links a { color:var(--steel); text-decoration:none; transition:color .2s; letter-spacing:1px; }
+  .nav-links a:hover { color:var(--gold); }
+  .nav-cta {
+    background:var(--crimson)!important; color:white!important;
+    padding:.5rem 1.5rem; border-radius:4px; font-weight:700!important;
+    transition:background .2s,box-shadow .2s!important;
+  }
+  .nav-cta:hover { background:var(--crimson2)!important; box-shadow:var(--glow)!important; }
+
+  /* ── HERO ── */
+  .hero {
+    position:relative; z-index:1;
+    min-height:100vh;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding:8rem 2rem 4rem; overflow:hidden;
+  }
+
+  .hero-rings { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; pointer-events:none; }
+  .ring { position:absolute; border-radius:50%; border:1px solid rgba(192,57,43,0.15); animation:pulse-ring 4s ease-in-out infinite; }
+  .ring:nth-child(1){width:300px;height:300px;}
+  .ring:nth-child(2){width:520px;height:520px;animation-delay:.5s;border-color:rgba(240,192,64,0.08);}
+  .ring:nth-child(3){width:740px;height:740px;animation-delay:1s;}
+  .ring:nth-child(4){width:960px;height:960px;animation-delay:1.5s;border-color:rgba(240,192,64,0.05);}
+  @keyframes pulse-ring { 0%,100%{opacity:.4;transform:scale(1)} 50%{opacity:1;transform:scale(1.03)} }
+
+  .mascot-wrap { position:relative; margin-bottom:2.5rem; animation:float 3s ease-in-out infinite; }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-14px)} }
+  .mascot-svg { width:170px; height:170px; filter:drop-shadow(0 0 28px rgba(192,57,43,0.7)); }
+  .badge {
+    position:absolute; bottom:-10px; left:50%; transform:translateX(-50%);
+    background:var(--crimson); color:white;
+    font-size:0.65rem; font-weight:700; padding:3px 14px; border-radius:20px;
+    letter-spacing:2px; white-space:nowrap; box-shadow:0 0 16px rgba(192,57,43,0.5);
+  }
+
+  .hero-eyebrow { font-size:.8rem; letter-spacing:5px; color:var(--crimson2); text-transform:uppercase; margin-bottom:1rem; font-weight:700; }
+  .hero-title { font-size:clamp(3.5rem,8vw,7rem); font-weight:900; line-height:1.0; color:white; margin-bottom:.5rem; }
+  .hero-title .gold { color:var(--gold); text-shadow:0 0 40px rgba(240,192,64,0.7); }
+  .hero-title .red  { color:var(--crimson2); }
+  .hero-sub { font-size:1.2rem; color:var(--steel); max-width:600px; margin:1.5rem auto; line-height:1.8; }
+  .hero-sub strong { color:var(--pale); font-weight:600; }
+
+  .version-tag {
+    display:inline-flex; align-items:center; gap:8px;
+    background:rgba(192,57,43,0.15); border:1px solid rgba(192,57,43,0.3);
+    color:var(--crimson2); font-size:.8rem; font-weight:700;
+    padding:6px 16px; border-radius:20px; margin-bottom:2.5rem; letter-spacing:1px;
+  }
+  .dot { width:8px; height:8px; border-radius:50%; background:var(--crimson2); animation:blink 1.5s ease-in-out infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
+
+  .hero-ctas { display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; margin-bottom:2.5rem; }
+
+  .btn-primary {
+    background:var(--crimson); color:white; border:none;
+    padding:1rem 2.5rem; font-size:1rem; font-weight:700;
+    font-family:'Cairo',sans-serif; border-radius:6px; cursor:pointer;
+    transition:all .2s; letter-spacing:1px;
+    box-shadow:0 4px 24px rgba(192,57,43,0.4);
+  }
+  .btn-primary:hover { background:var(--crimson2); transform:translateY(-2px); box-shadow:0 8px 32px rgba(192,57,43,0.6); }
+  .btn-outline {
+    background:transparent; color:var(--pale);
+    border:1px solid rgba(204,214,246,0.3);
+    padding:1rem 2.5rem; font-size:1rem; font-weight:600;
+    font-family:'Cairo',sans-serif; border-radius:6px; cursor:pointer; transition:all .2s;
+  }
+  .btn-outline:hover { border-color:var(--gold); color:var(--gold); transform:translateY(-2px); }
+
+  .install-block {
+    background:var(--glass); border:1px solid rgba(192,57,43,0.25);
+    border-radius:8px; padding:1rem 2rem;
+    font-family:'Courier New',monospace; font-size:.9rem;
+    color:var(--gold); direction:ltr;
+    display:inline-flex; align-items:center; gap:1rem;
+    backdrop-filter:blur(10px);
+  }
+  .install-prompt { color:var(--crimson2); font-weight:bold; }
+  .copy-btn {
+    background:rgba(192,57,43,0.2); border:1px solid rgba(192,57,43,0.3);
+    color:var(--crimson2); padding:4px 12px; border-radius:4px;
+    cursor:pointer; font-size:.75rem; font-family:'Cairo',sans-serif; transition:all .2s;
+  }
+  .copy-btn:hover { background:rgba(192,57,43,0.4); }
+
+  /* ── SECTIONS ── */
+  section { position:relative; z-index:1; padding:6rem 4rem; }
+  .section-label { text-align:center; font-size:.75rem; letter-spacing:5px; color:var(--crimson2); text-transform:uppercase; margin-bottom:1rem; font-weight:700; }
+  .section-title { text-align:center; font-size:clamp(2rem,4vw,3rem); font-weight:900; color:white; margin-bottom:1rem; }
+  .section-sub { text-align:center; color:var(--steel); max-width:550px; margin:0 auto 4rem; font-size:1rem; line-height:1.7; }
+  .divider { width:60px; height:3px; background:linear-gradient(90deg,var(--crimson),var(--gold)); margin:0 auto 2rem; border-radius:2px; }
+
+  /* ── CARDS ── */
+  .cards-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.5rem; max-width:1100px; margin:0 auto; }
+  .card {
+    background:var(--glass); border:1px solid rgba(136,153,187,0.15);
+    border-radius:12px; padding:2rem; backdrop-filter:blur(20px);
+    transition:all .3s; position:relative; overflow:hidden;
+  }
+  .card::before { content:''; position:absolute; top:0; right:0; width:60px; height:60px; background:radial-gradient(circle at top right,rgba(192,57,43,0.15),transparent 70%); }
+  .card:hover { border-color:rgba(192,57,43,0.4); transform:translateY(-4px); box-shadow:0 12px 40px rgba(0,0,0,0.4); }
+  .card-icon { font-size:2rem; margin-bottom:1rem; }
+  .card-title { font-size:1.1rem; font-weight:700; color:white; margin-bottom:.75rem; }
+  .card-desc { color:var(--steel); font-size:.9rem; line-height:1.7; }
+  .card-tag { display:inline-block; margin-top:1rem; background:rgba(192,57,43,0.15); color:var(--crimson2); font-size:.7rem; font-weight:700; padding:3px 10px; border-radius:20px; letter-spacing:1px; }
+  .card-tag.gold-tag { background:rgba(240,192,64,0.12); color:var(--gold2); }
+  .card-tag.green-tag { background:rgba(39,174,96,0.12); color:#2ecc71; }
+
+  /* ── SKILLS SECTION ── */
+  .skills-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1.2rem; max-width:1100px; margin:0 auto; }
+  .skill-card {
+    background:var(--glass); border:1px solid rgba(136,153,187,0.12);
+    border-radius:10px; padding:1.5rem; backdrop-filter:blur(20px);
+    transition:all .3s; text-align:center;
+  }
+  .skill-card:hover { border-color:rgba(240,192,64,0.3); transform:translateY(-3px); }
+  .skill-card .sk-icon { font-size:1.8rem; margin-bottom:.75rem; }
+  .skill-card .sk-name { font-size:.95rem; font-weight:700; color:white; margin-bottom:.4rem; }
+  .skill-card .sk-desc { font-size:.8rem; color:var(--steel); line-height:1.5; }
+  .skill-card .sk-tag { display:inline-block; margin-top:.75rem; font-size:.65rem; font-weight:700; padding:2px 8px; border-radius:20px; letter-spacing:1px; }
+  .sk-builtin { background:rgba(39,174,96,0.15); color:#2ecc71; }
+  .sk-npm     { background:rgba(192,57,43,0.15); color:var(--crimson2); }
+
+  /* ── HOW IT WORKS ── */
+  .steps-row { display:flex; justify-content:center; gap:2rem; flex-wrap:wrap; max-width:900px; margin:0 auto; }
+  .step {
+    flex:1; min-width:200px; max-width:240px;
+    background:var(--glass); border:1px solid rgba(136,153,187,0.12);
+    border-radius:12px; padding:2rem 1.5rem; text-align:center;
+    backdrop-filter:blur(20px); position:relative;
+  }
+  .step-num {
+    width:48px; height:48px; border-radius:50%;
+    background:linear-gradient(135deg,var(--crimson),var(--crimson2));
+    color:white; font-size:1.2rem; font-weight:900;
+    display:flex; align-items:center; justify-content:center;
+    margin:0 auto 1rem; box-shadow:0 0 20px rgba(192,57,43,0.4);
+  }
+  .step-title { font-size:1rem; font-weight:700; color:white; margin-bottom:.5rem; }
+  .step-desc { font-size:.85rem; color:var(--steel); line-height:1.6; }
+  .step-arrow {
+    position:absolute; top:50%; left:-1.5rem;
+    transform:translateY(-50%);
+    color:var(--crimson2); font-size:1.4rem; font-weight:900;
+  }
+
+  /* ── TERMINAL DEMO ── */
+  .terminal {
+    max-width:720px; margin:0 auto;
+    background:#020810; border:1px solid rgba(192,57,43,0.25);
+    border-radius:12px; overflow:hidden;
+    box-shadow:0 20px 60px rgba(0,0,0,0.6);
+    direction:ltr;
+  }
+  .terminal-bar {
+    background:#0a1628; padding:.75rem 1rem;
+    display:flex; align-items:center; gap:.5rem;
+    border-bottom:1px solid rgba(192,57,43,0.15);
+  }
+  .t-dot { width:12px; height:12px; border-radius:50%; }
+  .t-red   { background:#e74c3c; }
+  .t-gold  { background:#f0c040; }
+  .t-green { background:#2ecc71; }
+  .t-title { color:var(--steel); font-size:.8rem; margin-right:auto; font-family:monospace; }
+  .terminal-body { padding:1.5rem; font-family:'Courier New',monospace; font-size:.88rem; line-height:1.9; }
+  .t-prompt { color:var(--crimson2); }
+  .t-cmd    { color:var(--gold); }
+  .t-out    { color:var(--pale); }
+  .t-dim    { color:var(--steel); }
+  .t-green-text { color:#2ecc71; }
+  .t-blink  { animation:blink 1s step-end infinite; }
+
+  /* ── STATS ── */
+  .clues-section { background:var(--navy); border-top:1px solid rgba(192,57,43,0.2); border-bottom:1px solid rgba(192,57,43,0.2); }
+  .stats-row { display:flex; justify-content:center; gap:6rem; flex-wrap:wrap; }
+  .stat { text-align:center; }
+  .stat-num { font-size:3.5rem; font-weight:900; color:var(--gold); line-height:1; text-shadow:0 0 30px rgba(240,192,64,0.4); }
+  .stat-label { color:var(--steel); font-size:.85rem; margin-top:.5rem; letter-spacing:2px; text-transform:uppercase; }
+
+  /* ── TESTIMONIALS ── */
+  .testi-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.5rem; max-width:1100px; margin:0 auto; }
+  .testi-card {
+    background:var(--glass); border:1px solid rgba(136,153,187,0.1);
+    border-radius:12px; padding:1.5rem; backdrop-filter:blur(20px); transition:border-color .3s;
+  }
+  .testi-card:hover { border-color:rgba(192,57,43,0.3); }
+  .testi-quote { color:var(--pale); font-size:.9rem; line-height:1.8; margin-bottom:1.2rem; }
+  .testi-quote::before { content:'❝'; color:var(--crimson); font-size:1.5rem; display:block; margin-bottom:.5rem; }
+  .testi-author { display:flex; align-items:center; gap:.75rem; }
+  .avatar { width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1rem; font-weight:700; color:white; flex-shrink:0; }
+  .author-name { font-size:.85rem; font-weight:700; color:white; }
+  .author-handle { font-size:.75rem; color:var(--steel); }
+
+  /* ── CTA ── */
+  .cta-section { text-align:center; padding:8rem 2rem; position:relative; }
+  .cta-section::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at center,rgba(192,57,43,0.08) 0%,transparent 70%); pointer-events:none; }
+  .cta-title { font-size:clamp(2.5rem,5vw,4rem); font-weight:900; color:white; margin-bottom:1.5rem; line-height:1.1; }
+  .cta-title span { color:var(--gold); }
+
+  /* ── FOOTER ── */
+  footer {
+    position:relative; z-index:1;
+    border-top:1px solid rgba(136,153,187,0.1);
+    padding:2rem 4rem;
+    display:flex; align-items:center; justify-content:space-between;
+    color:var(--steel); font-size:.85rem;
+  }
+  footer a { color:var(--crimson2); text-decoration:none; }
+  footer a:hover { color:var(--gold); }
+
+  /* ── ANIMATIONS ── */
+  .reveal { opacity:0; transform:translateY(30px); animation:reveal-up .7s ease forwards; }
+  @keyframes reveal-up { to{opacity:1;transform:translateY(0)} }
+  .d1{animation-delay:.1s} .d2{animation-delay:.2s} .d3{animation-delay:.3s}
+  .d4{animation-delay:.4s} .d5{animation-delay:.5s} .d6{animation-delay:.6s}
+
+  /* ── RESPONSIVE ── */
+  @media(max-width:900px){
+    nav{padding:1rem 1.5rem} .nav-links{display:none}
+    section{padding:4rem 1.5rem}
+    .cards-grid,.testi-grid,.skills-grid{grid-template-columns:1fr}
+    .skills-grid{grid-template-columns:repeat(2,1fr)}
+    .stats-row{gap:3rem}
+    .steps-row{flex-direction:column;align-items:center}
+    .step-arrow{display:none}
+    footer{flex-direction:column;gap:1rem;text-align:center}
+  }
+</style>
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<nav>
+  <a class="logo" href="#">
+    <span class="logo-icon">🔍</span>
+    CONAN
+  </a>
+  <ul class="nav-links">
+    <li><a href="#how">كيف يعمل</a></li>
+    <li><a href="#skills">المهارات</a></li>
+    <li><a href="#capabilities">القدرات</a></li>
+    <li><a href="#community">المجتمع</a></li>
+    <li><a href="https://github.com/AmrLotfy/Conan-ai" class="nav-cta" target="_blank">ابدأ الآن</a></li>
+  </ul>
+</nav>
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <div class="hero-rings">
+    <div class="ring"></div><div class="ring"></div>
+    <div class="ring"></div><div class="ring"></div>
+  </div>
+
+  <div class="mascot-wrap reveal d1">
+    <svg class="mascot-svg" viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="80" cy="132" rx="40" ry="22" fill="#1a3a6b"/>
+      <rect x="55" y="115" width="50" height="22" rx="4" fill="#1a3a6b"/>
+      <rect x="73" y="108" width="14" height="12" fill="#ffd9b0"/>
+      <circle cx="80" cy="78" r="38" fill="#ffd9b0"/>
+      <ellipse cx="80" cy="48" rx="39" ry="20" fill="#1a1a2e"/>
+      <ellipse cx="58" cy="50" rx="14" ry="12" fill="#1a1a2e"/>
+      <ellipse cx="102" cy="50" rx="14" ry="12" fill="#1a1a2e"/>
+      <rect x="44" y="70" width="30" height="20" rx="10" fill="none" stroke="#2255cc" stroke-width="4"/>
+      <rect x="86" y="70" width="30" height="20" rx="10" fill="none" stroke="#2255cc" stroke-width="4"/>
+      <rect x="46" y="72" width="26" height="16" rx="8" fill="rgba(34,85,204,0.08)"/>
+      <rect x="88" y="72" width="26" height="16" rx="8" fill="rgba(34,85,204,0.08)"/>
+      <line x1="74" y1="80" x2="86" y2="80" stroke="#2255cc" stroke-width="3"/>
+      <line x1="44" y1="80" x2="36" y2="78" stroke="#2255cc" stroke-width="3" stroke-linecap="round"/>
+      <line x1="116" y1="80" x2="124" y2="78" stroke="#2255cc" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="59" cy="80" r="6" fill="#0a1a4a"/>
+      <circle cx="101" cy="80" r="6" fill="#0a1a4a"/>
+      <circle cx="61" cy="78" r="2.5" fill="white"/>
+      <circle cx="103" cy="78" r="2.5" fill="white"/>
+      <path d="M46 66 Q59 62 68 66" fill="none" stroke="#1a1a2e" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M92 66 Q101 62 114 66" fill="none" stroke="#1a1a2e" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M66 98 Q80 108 94 98" fill="none" stroke="#c0392b" stroke-width="2.5" stroke-linecap="round"/>
+      <polygon points="68,122 80,128 68,134" fill="#c0392b"/>
+      <polygon points="92,122 80,128 92,134" fill="#c0392b"/>
+      <circle cx="80" cy="128" r="4" fill="#e74c3c"/>
+      <circle cx="126" cy="105" r="16" fill="none" stroke="#f0c040" stroke-width="3.5"/>
+      <circle cx="126" cy="105" r="10" fill="rgba(240,192,64,0.1)"/>
+      <line x1="126" y1="95" x2="126" y2="115" stroke="rgba(240,192,64,0.3)" stroke-width="1"/>
+      <line x1="116" y1="105" x2="136" y2="105" stroke="rgba(240,192,64,0.3)" stroke-width="1"/>
+      <line x1="137" y1="116" x2="150" y2="132" stroke="#f0c040" stroke-width="4" stroke-linecap="round"/>
+      <rect x="48" y="73" width="10" height="5" rx="2.5" fill="rgba(255,255,255,0.35)"/>
+      <rect x="90" y="73" width="10" height="5" rx="2.5" fill="rgba(255,255,255,0.35)"/>
+      <circle cx="80" cy="78" r="38" fill="none" stroke="rgba(192,57,43,0.15)" stroke-width="8"/>
+    </svg>
+    <div class="badge">🔍 المحقق الذكي</div>
+  </div>
+
+  <div class="version-tag reveal d2">
+    <div class="dot"></div>
+    v1.0.0 — إصدار جديد للتو
+  </div>
+
+  <p class="hero-eyebrow reveal d2">إطار عمل الذكاء الاصطناعي</p>
+
+  <h1 class="hero-title reveal d3">
+    <span class="gold">CONAN</span><br>
+    الذكاء الذي <span class="red">يحقق</span> وينفذ
+  </h1>
+
+  <p class="hero-sub reveal d4">
+    مساعد AI يعمل على جهازك مباشرةً. يتذكر كل شيء،
+    يبحث في الويب، يقرأ ملفاتك، وينفّذ المهام قبل ما تكمل السؤال.
+    <strong>مفتوح المصدر، محلي بالكامل.</strong>
+  </p>
+
+  <div class="hero-ctas reveal d5">
+    <button class="btn-primary" onclick="window.open('https://github.com/AmrLotfy/Conan-ai','_blank')">🔍 ثبّت الآن مجاناً</button>
+    <button class="btn-outline" onclick="window.open('https://github.com/AmrLotfy/Conan-ai','_blank')">⭐ GitHub</button>
+  </div>
+
+  <div class="install-block reveal d6" dir="ltr">
+    <span class="install-prompt">$</span>
+    <span>npm install -g conan-ai</span>
+    <button class="copy-btn" onclick="navigator.clipboard.writeText('npm install -g conan-ai');this.textContent='✓ تم'">نسخ</button>
+  </div>
+</section>
+
+<!-- ── STATS ── -->
+<section class="clues-section">
+  <p class="section-label">الأدلة لا تكذب</p>
+  <div class="stats-row" style="margin-top:1rem">
+    <div class="stat">
+      <div class="stat-num">7+</div>
+      <div class="stat-label">مهارة جاهزة</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">3</div>
+      <div class="stat-label">مزودي LLM</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">∞</div>
+      <div class="stat-label">مهارات قابلة للتثبيت</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">0</div>
+      <div class="stat-label">بيانات تُرسل للخارج</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── HOW IT WORKS ── -->
+<section id="how">
+  <p class="section-label">خطوات بسيطة</p>
+  <h2 class="section-title">شغّل CONAN في دقيقتين</h2>
+  <div class="divider"></div>
+  <p class="section-sub">لا سيرفر، لا اشتراك، لا تعقيد. فقط تثبيت وتشغيل.</p>
+
+  <div class="steps-row">
+    <div class="step">
+      <div class="step-num">١</div>
+      <div class="step-title">ثبّت</div>
+      <div class="step-desc"><code style="color:var(--gold);font-size:.8rem">npm install -g conan-ai</code><br>أمر واحد وانتهى</div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="background:linear-gradient(135deg,#b8860b,var(--gold))">٢</div>
+      <div class="step-title">هيّئ</div>
+      <div class="step-desc"><code style="color:var(--gold);font-size:.8rem">conan init</code><br>اختر المزود وأدخل مفتاحك</div>
+    </div>
+    <div class="step">
+      <div class="step-num" style="background:linear-gradient(135deg,#1a6b4a,#2ecc71)">٣</div>
+      <div class="step-title">تحدّث</div>
+      <div class="step-desc"><code style="color:var(--gold);font-size:.8rem">conan chat</code><br>المحقق جاهز للتحقيق</div>
+    </div>
+  </div>
+
+  <!-- Terminal demo -->
+  <div style="margin-top:4rem">
+    <div class="terminal">
+      <div class="terminal-bar">
+        <div class="t-dot t-red"></div>
+        <div class="t-dot t-gold"></div>
+        <div class="t-dot t-green"></div>
+        <div class="t-title">conan — terminal</div>
+      </div>
+      <div class="terminal-body">
+        <div><span class="t-prompt">$</span> <span class="t-cmd">conan chat</span></div>
+        <div class="t-dim">╔═══════════════════════════════╗</div>
+        <div class="t-dim">║       🔍 CONAN AI AGENT       ║</div>
+        <div class="t-dim">╚═══════════════════════════════╝</div>
+        <br>
+        <div><span style="color:#2ecc71">You:</span> <span class="t-out">ما هو الطقس في القاهرة؟</span></div>
+        <div><span style="color:var(--gold)">Conan:</span> <span class="t-out">☀️ القاهرة — 28°م، صافٍ. الرطوبة 30% · الريح 12 كم/س</span></div>
+        <br>
+        <div><span style="color:#2ecc71">You:</span> <span class="t-out">ابحث عن آخر أخبار الذكاء الاصطناعي</span></div>
+        <div><span style="color:var(--gold)">Conan:</span> <span class="t-out">🔎 جاري البحث...</span></div>
+        <div class="t-out">١. GPT-5 قادم — OpenAI تكشف عن نموذجها الجديد</div>
+        <div class="t-out">٢. Google تطلق Gemini Ultra 2 لمنافسة Claude</div>
+        <div class="t-dim">   🔗 techcrunch.com/ai-news...</div>
+        <br>
+        <div><span style="color:#2ecc71">You:</span> <span class="t-out">تذكّر أنني أعمل في Hollat كمطوّر Backend</span></div>
+        <div><span style="color:var(--gold)">Conan:</span> <span class="t-green-text">✅ حفظت! سأتذكر دائماً أنك مطوّر Backend في Hollat.</span></div>
+        <br>
+        <div><span style="color:#2ecc71">You:</span> <span class="t-out">ذكّرني بعد ساعة بمراجعة الـ PR</span></div>
+        <div><span style="color:var(--gold)">Conan:</span> <span class="t-green-text">⏰ تم! سأذكّرك الساعة 6:00 م بـ "مراجعة الـ PR".</span></div>
+        <br>
+        <div><span style="color:#2ecc71">You:</span> <span class="t-dim t-blink">█</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── SKILLS ── -->
+<section id="skills" style="background:var(--navy);border-top:1px solid rgba(192,57,43,0.15);border-bottom:1px solid rgba(192,57,43,0.15)">
+  <p class="section-label">النظام البيئي</p>
+  <h2 class="section-title">مهارات جاهزة — وأكثر قادم</h2>
+  <div class="divider"></div>
+  <p class="section-sub">مهارات مدمجة تعمل دون إعداد، ومهارات خارجية تُثبّتها من npm بأمر واحد.</p>
+
+  <div class="skills-grid">
+    <div class="skill-card">
+      <div class="sk-icon">🕐</div>
+      <div class="sk-name">الوقت والتاريخ</div>
+      <div class="sk-desc">الوقت الحالي في منطقتك الزمنية دائماً</div>
+      <span class="sk-tag sk-builtin">مدمج</span>
+    </div>
+    <div class="skill-card">
+      <div class="sk-icon">🧠</div>
+      <div class="sk-name">الذاكرة</div>
+      <div class="sk-desc">يحفظ حقائق عنك ويتذكرها عبر الجلسات</div>
+      <span class="sk-tag sk-builtin">مدمج</span>
+    </div>
+    <div class="skill-card">
+      <div class="sk-icon">⏰</div>
+      <div class="sk-name">التذكيرات</div>
+      <div class="sk-desc">اضبط تذكيراً — يُطلق مباشرةً في الطرفية</div>
+      <span class="sk-tag sk-builtin">مدمج</span>
+    </div>
+    <div class="skill-card">
+      <div class="sk-icon">🌐</div>
+      <div class="sk-name">قارئ URL</div>
+      <div class="sk-desc">يقرأ ويلخّص أي صفحة ويب عامة</div>
+      <span class="sk-tag sk-builtin">مدمج</span>
+    </div>
+    <div class="skill-card">
+      <div class="sk-icon">🌤️</div>
+      <div class="sk-name">الطقس</div>
+      <div class="sk-desc">طقس حالي وتوقعات 3 أيام لأي مدينة</div>
+      <span class="sk-tag sk-npm">npm install</span>
+    </div>
+    <div class="skill-card">
+      <div class="sk-icon">🔎</div>
+      <div class="sk-name">بحث الويب</div>
+      <div class="sk-desc">نتائج حقيقية من الإنترنت عبر Tavily API</div>
+      <span class="sk-tag sk-npm">npm install</span>
+    </div>
+    <div class="skill-card">
+      <div class="sk-icon">📰</div>
+      <div class="sk-name">الأخبار</div>
+      <div class="sk-desc">أخبار عاجلة — تقني، عالمي، ومصادر عربية</div>
+      <span class="sk-tag sk-npm">npm install</span>
+    </div>
+    <div class="skill-card">
+      <div class="sk-icon">📁</div>
+      <div class="sk-name">قارئ الملفات</div>
+      <div class="sk-desc">اقرأ وحلّل الملفات المحلية — log، json، csv وأكثر</div>
+      <span class="sk-tag sk-npm">npm install</span>
+    </div>
+  </div>
+
+  <div style="text-align:center;margin-top:3rem">
+    <p style="color:var(--steel);font-size:.9rem;margin-bottom:1.5rem">أنشئ مهارتك الخاصة وانشرها على npm كـ <code style="color:var(--gold)">conan-skill-*</code></p>
+    <button class="btn-outline" onclick="window.open('https://github.com/AmrLotfy/Conan-ai','_blank')">📖 دليل بناء المهارات</button>
+  </div>
+</section>
+
+<!-- ── CAPABILITIES ── -->
+<section id="capabilities">
+  <p class="section-label">القدرات</p>
+  <h2 class="section-title">محقق بمهارات لا تحصى</h2>
+  <div class="divider"></div>
+  <p class="section-sub">CONAN لا يقترح — ينفّذ. من البحث في الويب إلى قراءة الملفات، القضية تُحسم دائماً.</p>
+
+  <div class="cards-grid">
+    <div class="card">
+      <div class="card-icon">🧠</div>
+      <div class="card-title">ذاكرة المحقق</div>
+      <div class="card-desc">يتذكر كل تفصيلة ويتطور معك. لا قضية تُنسى — سياقك محفوظ عبر كل الجلسات.</div>
+      <span class="card-tag">MEMORY ENGINE</span>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔎</div>
+      <div class="card-title">بحث حقيقي في الويب</div>
+      <div class="card-desc">لا تخمين، لا بيانات قديمة. يبحث في الإنترنت ويعود بنتائج حقيقية ومصادر موثّقة.</div>
+      <span class="card-tag gold-tag">WEB SEARCH</span>
+    </div>
+    <div class="card">
+      <div class="card-icon">📁</div>
+      <div class="card-title">قارئ الملفات المحلية</div>
+      <div class="card-desc">اسأله "لخّص هذا الـ log" أو "ما الخطأ في هذا الملف" — يقرأ مباشرةً من جهازك.</div>
+      <span class="card-tag green-tag">FILE READER</span>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔧</div>
+      <div class="card-title">نظام مهارات قابل للتوسع</div>
+      <div class="card-desc">أنشئ أدواتك كحزم npm. يُثبّتها المجتمع ويستخدمها الجميع فوراً.</div>
+      <span class="card-tag">SKILL ENGINE</span>
+    </div>
+    <div class="card">
+      <div class="card-icon">💬</div>
+      <div class="card-title">متعدد المزودين</div>
+      <div class="card-desc">استخدم مفتاحك من OpenAI أو Anthropic أو OpenRouter — اختيارك بالكامل.</div>
+      <span class="card-tag gold-tag">MULTI-PROVIDER</span>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔒</div>
+      <div class="card-title">خصوصية محلية كاملة</div>
+      <div class="card-desc">يعمل على جهازك. SQLite محلي. لا سيرفر خارجي، لا اشتراك، بياناتك ملكك.</div>
+      <span class="card-tag">PRIVATE BY DEFAULT</span>
+    </div>
+  </div>
+</section>
+
+<!-- ── TESTIMONIALS ── -->
+<section id="community" style="background:var(--navy);border-top:1px solid rgba(192,57,43,0.15);border-bottom:1px solid rgba(192,57,43,0.15)">
+  <p class="section-label">ما يقوله المجتمع</p>
+  <h2 class="section-title">القضايا المحلولة</h2>
+  <div class="divider"></div>
+  <div class="testi-grid">
+    <div class="testi-card">
+      <div class="testi-quote">أخيراً agent مفتوح المصدر يشتغل مع مفتاح OpenAI مباشرةً بدون ما أحتاج حساب ثاني. CONAN وفّر عليّ وقت وفلوس.</div>
+      <div class="testi-author">
+        <div class="avatar" style="background:#c0392b;">أ</div>
+        <div><div class="author-name">أحمد السيد</div><div class="author-handle">@ahmed_dev · مطور Backend</div></div>
+      </div>
+    </div>
+    <div class="testi-card">
+      <div class="testi-quote">ميزة قراءة الملفات غيّرت شغلي. بدل ما أفتح الـ log وأدور فيه، بعطيه CONAN وهو يقولي الخطأ فوراً.</div>
+      <div class="testi-author">
+        <div class="avatar" style="background:#1a6b4a;">س</div>
+        <div><div class="author-name">سارة محمود</div><div class="author-handle">@sara_tech · DevOps Engineer</div></div>
+      </div>
+    </div>
+    <div class="testi-card">
+      <div class="testi-quote">الأفضل إنه بيتكلم عربي بشكل طبيعي وفاهم السياق. وأقدر أبني مهارة خاصة بـ 10 دقايق وأنشرها على npm.</div>
+      <div class="testi-author">
+        <div class="avatar" style="background:#6b4a1a;">م</div>
+        <div><div class="author-name">محمد خالد</div><div class="author-handle">@mo_builds · Full-Stack Developer</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FINAL CTA ── -->
+<section class="cta-section">
+  <h2 class="cta-title">جاهز تفتح <span>القضية؟</span></h2>
+  <p class="hero-sub" style="margin:0 auto 2.5rem">ثبّت CONAN في دقيقتين وابدأ الأتمتة الحقيقية. مجاناً، مفتوح المصدر، إلى الأبد.</p>
+  <div class="hero-ctas">
+    <button class="btn-primary" onclick="window.open('https://github.com/AmrLotfy/Conan-ai','_blank')">🔍 ابدأ الآن مجاناً</button>
+    <button class="btn-outline" onclick="window.open('https://github.com/AmrLotfy/Conan-ai','_blank')">اقرأ التوثيق</button>
+  </div>
+  <div class="install-block" style="margin-top:2rem" dir="ltr">
+    <span class="install-prompt">$</span>
+    <span>npm install -g conan-ai && conan init</span>
+    <button class="copy-btn" onclick="navigator.clipboard.writeText('npm install -g conan-ai && conan init');this.textContent='✓ تم'">نسخ</button>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="logo" style="font-size:1.3rem">🔍 CONAN</div>
+  <div>بُني بـ ❤️ للمطوّرين العرب · <a href="https://www.linkedin.com/in/amr-lotfy-saleh-09438b113/" target="_blank">Amr Lotfy</a></div>
+  <div>MIT License · <a href="https://github.com/AmrLotfy/Conan-ai" target="_blank">GitHub</a></div>
+</footer>
+
+</body>
+</html>

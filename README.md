@@ -121,10 +121,12 @@ Extend Conan with skills published on npm:
 conan skill install conan-skill-weather
 ```
 
-| Package | What it adds |
-|---|---|
-| [conan-skill-weather](https://github.com/AmrLotfy/conan-skill-weather) | Real-time weather + 3-day forecast |
-| More coming soon... | |
+| Package | What it adds | API Key |
+|---|---|---|
+| [conan-skill-weather](https://github.com/AmrLotfy/conan-skill-weather) | Real-time weather + 3-day forecast | OpenWeatherMap (free) |
+| conan-skill-web-search | Search the web for real-time info + sources | Tavily (free tier) |
+| conan-skill-news | Top headlines by topic, supports Arabic sources | NewsAPI (free tier) |
+| conan-skill-file-reader | Read & summarize local files (log, json, csv, code…) | None — fully local |
 
 ---
 
@@ -173,6 +175,8 @@ All config lives in `~/.conan/config.json`:
 | `timezone` | IANA timezone (e.g. `Africa/Cairo`) |
 | `model` | AI model (e.g. `gpt-4o-mini`, `claude-3-5-haiku-20241022`) |
 | `weatherKey` | OpenWeatherMap API key (optional) |
+| `tavilyKey` | Tavily Search API key (optional, for web search) |
+| `newsApiKey` | NewsAPI key (optional, for news headlines) |
 | `skills` | List of installed skill packages |
 
 Switch provider or model anytime:
