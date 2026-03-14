@@ -1,0 +1,255 @@
+#!/usr/bin/env node
+
+/**
+ * Conan CLI Entrypoint
+ * Commands: init, chat, ask, skill, memory, config
+ */
+
+const { Command } = require('commander')
+const chalk       = require('chalk')
+const inquirer    = require('inquirer')
+const config      = require('../core/config')
+
+const program = new Command()
+
+program
+  .name('conan')
+  .description('🔍 Conan — Personal AI Agent Framework')
+  .version('0.1.0')
+
+// ─── conan init ──────────────────────────────────────────────────────────────
+program
+  .command('init')
+  .description('Set up Conan for the first time')
+  .action(async () => {
+    console.log('')
+    console.log(chalk.cyan.bold('  🔍 Welcome to Conan — Personal AI Agent'))
+    console.log(chalk.gray('  Let\'s get you set up in 60 seconds.\n'))
+
+    const existing = config.load()
+
+    const answers = await inquirer.prompt([
+      {
+        type:    'input',
+        name:    'name',
+        message: 'What\'s your name?',
+        default: existing.name !== 'there' ? existing.name : '',
+      },
+      {
+        type:    'input',
+        name:    'openrouterKey',
+        message: 'OpenRouter API key (get one free at openrouter.ai):',
+        default: existing.openrouterKey || '',
+        validate: v => v.trim().length > 0 ? true : 'API key is required',
+      },
+      {
+        type:    'input',
+        name:    'timezone',
+        message: 'Your timezone (IANA format, e.g. Africa/Cairo, America/New_York):',
+        default: existing.timezone || 'UTC',
+      },
+      {
+        type:    'list',
+        name:    'model',
+        message: 'Which AI model to use?',
+        default: existing.model || 'openai/gpt-4o-mini',
+        choices: [
+          { name: 'GPT-4o Mini (fast, cheap — recommended)', value: 'openai/gpt-4o-mini' },
+          { name: 'GPT-4o (powerful, slower)',               value: 'openai/gpt-4o' },
+          { name: 'Claude 3.5 Haiku (fast Anthropic model)', value: 'anthropic/claude-3-5-haiku' },
+          { name: 'Claude 3.7 Sonnet (powerful Anthropic)',  value: 'anthropic/claude-3-7-sonnet' },
+          { name: 'Other (enter manually)',                   value: '__other__' },
+        ],
+      },
+      {
+        type:    'input',
+        name:    'customModel',
+        message: 'Enter model name (e.g. mistralai/mistral-7b-instruct):',
+        when:    (a) => a.model === '__other__',
+        validate: v => v.trim().length > 0 ? true : 'Model name is required',
+      },
+    ])
+
+    const finalConfig = {
+      ...existing,
+      name:          answers.name.trim() || 'there',
+      openrouterKey: answers.openrouterKey.trim(),
+      timezone:      answers.timezone.trim() || 'UTC',
+      model:         answers.model === '__other__'
+                       ? answers.customModel.trim()
+                       : answers.model,
+    }
+
+    config.save(finalConfig)
+
+    console.log('')
+    console.log(chalk.green('  ✅ Conan is ready!'))
+    console.log(chalk.gray(`  Config saved to: ${config.CONFIG_FILE}`))
+    console.log('')
+    console.log(chalk.white('  Start chatting:'))
+    console.log(chalk.cyan('  conan chat'))
+    console.log('')
+  })
+
+// ─── conan chat ──────────────────────────────────────────────────────────────
+program
+  .command('chat')
+  .description('Start an interactive chat session')
+  .action(async () => {
+    if (!config.isInitialized()) {
+      console.log(chalk.yellow('\n  ⚠ Conan is not set up yet. Run: conan init\n'))
+      process.exit(1)
+    }
+    const repl = require('../connectors/repl')
+    await repl.start()
+  })
+
+// ─── conan ask ───────────────────────────────────────────────────────────────
+program
+  .command('ask <question...>')
+  .description('Ask Conan a one-shot question (scriptable)')
+  .action(async (questionWords) => {
+    if (!config.isInitialized()) {
+      console.log(chalk.yellow('\n  ⚠ Conan is not set up yet. Run: conan init\n'))
+      process.exit(1)
+    }
+
+    const question  = questionWords.join(' ')
+    const agent     = require('../core/agent')
+    const historyMod = require('../core/history')
+    const ora       = require('ora')
+
+    const spinner = ora({ text: 'Thinking...', color: 'cyan' }).start()
+
+    try {
+      const sessionId = historyMod.newSessionId()
+      const reply     = await agent.chat(sessionId, question)
+      spinner.stop()
+      console.log(reply)
+    } catch (err) {
+      spinner.stop()
+      console.error(chalk.red('Error: ') + err.message)
+      process.exit(1)
+    }
+  })
+
+// ─── conan memory ────────────────────────────────────────────────────────────
+const memCmd = program.command('memory').description('Manage long-term memory')
+
+memCmd
+  .command('list')
+  .description('List all stored memories')
+  .action(() => {
+    const memory = require('../core/memory')
+    const all    = memory.list()
+    if (!all.length) {
+      console.log(chalk.gray('\n  No memories stored yet.\n'))
+      return
+    }
+    console.log(chalk.cyan('\n  📝 Memories:\n'))
+    all.forEach(m => {
+      console.log(`  ${chalk.gray(`[${m.id}]`)} ${chalk.yellow(`[${m.category}]`)} ${m.fact}`)
+    })
+    console.log('')
+  })
+
+memCmd
+  .command('forget <id>')
+  .description('Delete a memory by ID')
+  .action((id) => {
+    const memory  = require('../core/memory')
+    const deleted = memory.forget(Number(id))
+    if (deleted) {
+      console.log(chalk.green(`\n  ✅ Forgot memory #${id}\n`))
+    } else {
+      console.log(chalk.red(`\n  Memory #${id} not found.\n`))
+    }
+  })
+
+// ─── conan skill ─────────────────────────────────────────────────────────────
+const skillCmd = program.command('skill').description('Manage skills')
+
+skillCmd
+  .command('list')
+  .description('List installed skills')
+  .action(() => {
+    const agent  = require('../core/agent')
+    const registry = agent.buildRegistry()
+    const skills = registry.list()
+
+    console.log(chalk.cyan('\n  🧩 Active Skills:\n'))
+    skills.forEach(s => {
+      console.log(`  ${chalk.green('●')} ${chalk.white(s.name.padEnd(25))} ${chalk.gray(s.description)}`)
+    })
+    console.log('')
+  })
+
+skillCmd
+  .command('install <package>')
+  .description('Install an external skill (npm package name)')
+  .action(async (pkg) => {
+    const { execSync } = require('child_process')
+
+    console.log(chalk.cyan(`\n  Installing ${pkg}...\n`))
+
+    try {
+      execSync(`npm install -g ${pkg}`, { stdio: 'inherit' })
+
+      // Add to config skills list
+      const cfg = config.load()
+      cfg.skills = cfg.skills || []
+      if (!cfg.skills.includes(pkg)) {
+        cfg.skills.push(pkg)
+        config.save(cfg)
+      }
+
+      console.log(chalk.green(`\n  ✅ Skill "${pkg}" installed successfully.\n`))
+    } catch {
+      console.log(chalk.red(`\n  Failed to install "${pkg}". Is it a valid npm package?\n`))
+      process.exit(1)
+    }
+  })
+
+skillCmd
+  .command('remove <package>')
+  .description('Remove an installed skill')
+  .action((pkg) => {
+    const cfg = config.load()
+    cfg.skills = (cfg.skills || []).filter(s => s !== pkg)
+    config.save(cfg)
+    console.log(chalk.green(`\n  ✅ Skill "${pkg}" removed from Conan.\n`))
+    console.log(chalk.gray(`  Note: Run "npm uninstall -g ${pkg}" to fully remove the package.\n`))
+  })
+
+// ─── conan config ────────────────────────────────────────────────────────────
+const cfgCmd = program.command('config').description('Manage configuration')
+
+cfgCmd
+  .command('set <key> <value>')
+  .description('Set a config value (e.g. conan config set model anthropic/claude-3-haiku)')
+  .action((key, value) => {
+    config.set(key, value)
+    console.log(chalk.green(`\n  ✅ Set ${key} = ${value}\n`))
+  })
+
+cfgCmd
+  .command('show')
+  .description('Show current configuration')
+  .action(() => {
+    const cfg = config.load()
+    console.log(chalk.cyan('\n  ⚙ Configuration:\n'))
+    Object.entries(cfg).forEach(([k, v]) => {
+      const display = k === 'openrouterKey' && v
+        ? v.slice(0, 8) + '...' + v.slice(-4)
+        : JSON.stringify(v)
+      console.log(`  ${chalk.gray(k.padEnd(20))} ${display}`)
+    })
+    console.log('')
+  })
+
+program.parse(process.argv)
+
+// Show help if no command given
+if (!process.argv.slice(2).length) {
+  program.outputHelp()
+}
