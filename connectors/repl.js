@@ -35,14 +35,23 @@ async function start() {
     output: process.stdout,
   })
 
-  const prompt = () => {
-    rl.question(chalk.green('You: '), async (input) => {
-      const userInput = input.trim()
+  // Keep the process alive — readline closes when stdin ends (e.g. pipe)
+  rl.on('close', () => {
+    process.exit(0)
+  })
 
-      if (!userInput) {
-        prompt()
-        return
+  const askQuestion = (query) => new Promise((resolve) => rl.question(query, resolve))
+
+  const loop = async () => {
+    while (true) {
+      let userInput
+      try {
+        userInput = (await askQuestion(chalk.green('You: '))).trim()
+      } catch {
+        break
       }
+
+      if (!userInput) continue
 
       // Built-in slash commands
       if (userInput === '/exit' || userInput === '/quit') {
@@ -54,8 +63,7 @@ async function start() {
       if (userInput === '/new') {
         sessionId = history.newSessionId()
         console.log(chalk.gray('\n  ✨ New session started. Fresh context.\n'))
-        prompt()
-        return
+        continue
       }
 
       if (userInput === '/memory') {
@@ -70,8 +78,7 @@ async function start() {
           })
           console.log('')
         }
-        prompt()
-        return
+        continue
       }
 
       if (userInput === '/help') {
@@ -80,35 +87,35 @@ async function start() {
         console.log(chalk.gray('    /memory   List stored memories'))
         console.log(chalk.gray('    /exit     Quit Conan'))
         console.log(chalk.gray('    /help     Show this help\n'))
-        prompt()
-        return
+        continue
       }
 
-      // Spinner while waiting for AI response
-      const spinner = ora({
-        text:    'Thinking...',
-        color:   'cyan',
-        spinner: 'dots',
-      }).start()
+      // Pause readline so spinner doesn't conflict with stdin
+      rl.pause()
+
+      // Simple "thinking" indicator — no spinner library to avoid conflicts
+      process.stdout.write(chalk.gray('  thinking...\n'))
 
       try {
         const reply = await agent.chat(sessionId, userInput)
-        spinner.stop()
+        // Clear the thinking line and print response
+        process.stdout.write('\x1B[1A\x1B[2K') // move up + clear line
         console.log('')
         console.log(chalk.cyan('Conan: ') + reply)
         console.log('')
       } catch (err) {
-        spinner.stop()
+        process.stdout.write('\x1B[1A\x1B[2K')
         console.log('')
         console.log(chalk.red('Error: ') + err.message)
         console.log('')
       }
 
-      prompt()
-    })
+      // Resume readline for next input
+      rl.resume()
+    }
   }
 
-  prompt()
+  loop()
 }
 
 module.exports = { start }
