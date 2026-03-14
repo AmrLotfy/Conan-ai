@@ -64,8 +64,8 @@
     letter-spacing:4px; text-shadow:0 0 24px rgba(240,192,64,0.5);
     text-decoration:none;
   }
-  .logo-icon { font-size:2rem; animation:spin-slow 10s linear infinite; display:inline-block; }
-  @keyframes spin-slow { 100%{transform:rotate(360deg)} }
+  .logo-icon { font-size:2rem; display:inline-block; transition:transform .4s ease; }
+  .logo:hover .logo-icon { transform:rotate(20deg); }
 
   .nav-links { display:flex; gap:2rem; list-style:none; font-size:0.95rem; font-weight:500; }
   .nav-links a { color:var(--steel); text-decoration:none; transition:color .2s; letter-spacing:1px; }
@@ -394,7 +394,7 @@
   <p class="section-label">الأدلة لا تكذب</p>
   <div class="stats-row" style="margin-top:1rem">
     <div class="stat">
-      <div class="stat-num">7+</div>
+      <div class="stat-num">9+</div>
       <div class="stat-label">مهارة جاهزة</div>
     </div>
     <div class="stat">
@@ -461,8 +461,8 @@
         <div class="t-out">٢. Google تطلق Gemini Ultra 2 لمنافسة Claude</div>
         <div class="t-dim">   🔗 techcrunch.com/ai-news...</div>
         <br>
-        <div><span style="color:#2ecc71">You:</span> <span class="t-out">تذكّر أنني أعمل في Hollat كمطوّر Backend</span></div>
-        <div><span style="color:var(--gold)">Conan:</span> <span class="t-green-text">✅ حفظت! سأتذكر دائماً أنك مطوّر Backend في Hollat.</span></div>
+        <div><span style="color:#2ecc71">You:</span> <span class="t-out">تذكّر أنني مطوّر Backend أفضّل Dark Mode</span></div>
+        <div><span style="color:var(--gold)">Conan:</span> <span class="t-green-text">✅ حفظت! سأتذكر دائماً أنك مطوّر Backend تفضّل Dark Mode.</span></div>
         <br>
         <div><span style="color:#2ecc71">You:</span> <span class="t-out">ذكّرني بعد ساعة بمراجعة الـ PR</span></div>
         <div><span style="color:var(--gold)">Conan:</span> <span class="t-green-text">⏰ تم! سأذكّرك الساعة 6:00 م بـ "مراجعة الـ PR".</span></div>
@@ -528,6 +528,18 @@
       <div class="sk-name">قارئ الملفات</div>
       <div class="sk-desc">اقرأ وحلّل الملفات المحلية — log، json، csv وأكثر</div>
       <span class="sk-tag sk-npm">npm install</span>
+    </div>
+    <div class="skill-card">
+      <div class="sk-icon">📧</div>
+      <div class="sk-name">Gmail</div>
+      <div class="sk-desc">اقرأ، أرسل، ردّ وابحث في بريدك مباشرةً</div>
+      <span class="sk-tag sk-npm">npm install</span>
+    </div>
+    <div class="skill-card">
+      <div class="sk-icon">✈️</div>
+      <div class="sk-name">Telegram</div>
+      <div class="sk-desc">شغّل CONAN كبوت Telegram — أوامر من أي مكان</div>
+      <span class="sk-tag sk-builtin">مدمج</span>
     </div>
   </div>
 
