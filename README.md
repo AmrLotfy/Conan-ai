@@ -47,8 +47,8 @@ Conan: 🔎 Here's what's happening in AI today...
        1. GPT-5 announced — OpenAI reveals next model
           🔗 techcrunch.com/...
 
-You: remember that I work at Hollat as a backend developer
-Conan: Got it! I'll remember that you work at Hollat as a backend developer.
+You: remember that I prefer dark mode and work as a backend developer
+Conan: Got it! I'll remember that you prefer dark mode and work as a backend developer.
 
 You: remind me in 2 hours to review the PR
 Conan: ✅ Reminder set for 6:00 PM — "review the PR". I've got you covered!
@@ -131,6 +131,7 @@ conan skill install conan-skill-weather
 conan skill install conan-skill-web-search
 conan skill install conan-skill-news
 conan skill install conan-skill-file-reader
+conan skill install conan-skill-gmail
 ```
 
 | Package | What it adds | API Key needed |
@@ -139,6 +140,7 @@ conan skill install conan-skill-file-reader
 | [conan-skill-web-search](https://github.com/AmrLotfy/conan-skill-web-search) | Search the web with real-time results and sources | Tavily (free tier) |
 | [conan-skill-news](https://github.com/AmrLotfy/conan-skill-news) | Top headlines — tech, world, sports, Arabic sources | NewsAPI (free tier) |
 | [conan-skill-file-reader](https://github.com/AmrLotfy/conan-skill-file-reader) | Read and summarize local files (log, json, csv, code…) | None — fully local |
+| [conan-skill-gmail](https://github.com/AmrLotfy/conan-skill-gmail) | Read, send, reply, search and manage Gmail | Google Cloud (free) |
 
 ---
 
@@ -164,6 +166,31 @@ conan serve --telegram
 ```
 
 Conan will start listening via long polling — no server or public URL needed.
+
+### Gmail setup
+
+```bash
+# 1. Install the skill
+conan skill install conan-skill-gmail
+
+# 2. Go to https://console.cloud.google.com
+#    → Create a project → Enable Gmail API
+#    → Credentials → Create OAuth 2.0 Client ID (Desktop app)
+#    → Add redirect URI: http://localhost:9854/callback
+
+# 3. Save your credentials
+conan config set googleClientId YOUR_CLIENT_ID
+conan config set googleClientSecret YOUR_CLIENT_SECRET
+
+# 4. Authenticate — opens browser once
+conan-gmail-auth
+
+# 5. Start chatting
+conan chat
+# → "read my latest emails"
+# → "send an email to friend@example.com — subject: Hello"
+# → "search for emails from boss@company.com"
+```
 
 ---
 
@@ -223,6 +250,8 @@ All config lives in `~/.conan/config.json`. No `.env` files, no cloud sync.
 | `weatherKey` | OpenWeatherMap API key (for conan-skill-weather) |
 | `tavilyKey` | Tavily API key (for conan-skill-web-search) |
 | `newsApiKey` | NewsAPI key (for conan-skill-news) |
+| `googleClientId` | Google OAuth Client ID (for conan-skill-gmail) |
+| `googleClientSecret` | Google OAuth Client Secret (for conan-skill-gmail) |
 | `skills` | List of installed skill packages |
 
 Switch anything anytime:
@@ -260,4 +289,4 @@ Conan follows the **6-pillar AI agent architecture**:
 
 ## License
 
-MIT · Built by [Amr Lotfy](https://github.com/AmrLotfy) @ [Hollat](https://hollat.net)
+MIT · Built by [Amr Lotfy](https://github.com/AmrLotfy)
