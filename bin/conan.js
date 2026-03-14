@@ -68,6 +68,19 @@ program
         when:    (a) => a.model === '__other__',
         validate: v => v.trim().length > 0 ? true : 'Model name is required',
       },
+      {
+        type:    'confirm',
+        name:    'wantWeather',
+        message: 'Do you want to enable weather? (free API key from openweathermap.org)',
+        default: !!existing.weatherKey,
+      },
+      {
+        type:    'input',
+        name:    'weatherKey',
+        message: 'OpenWeatherMap API key (press Enter to skip and add later):',
+        default: existing.weatherKey || '',
+        when:    (a) => a.wantWeather,
+      },
     ])
 
     const finalConfig = {
@@ -80,11 +93,29 @@ program
                        : answers.model,
     }
 
+    // Save weather key if provided
+    if (answers.wantWeather && answers.weatherKey?.trim()) {
+      finalConfig.weatherKey = answers.weatherKey.trim()
+      // Auto-register weather skill if not already in list
+      finalConfig.skills = finalConfig.skills || []
+      if (!finalConfig.skills.includes('conan-skill-weather')) {
+        finalConfig.skills.push('conan-skill-weather')
+      }
+    }
+
     config.save(finalConfig)
 
     console.log('')
     console.log(chalk.green('  ✅ Conan is ready!'))
     console.log(chalk.gray(`  Config saved to: ${config.CONFIG_FILE}`))
+
+    if (answers.wantWeather && !answers.weatherKey?.trim()) {
+      console.log('')
+      console.log(chalk.yellow('  ⚡ Weather skipped — add it anytime:'))
+      console.log(chalk.gray('     1. Get a free key at openweathermap.org'))
+      console.log(chalk.gray('     2. Run: conan config set weatherKey YOUR_KEY'))
+    }
+
     console.log('')
     console.log(chalk.white('  Start chatting:'))
     console.log(chalk.cyan('  conan chat'))
