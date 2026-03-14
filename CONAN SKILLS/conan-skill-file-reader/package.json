@@ -1,9 +1,0 @@
-{
-  "name": "conan-skill-file-reader",
-  "version": "1.0.0",
-  "description": "File reader skill for Conan AI — read and summarize local files (txt, md, json, csv, log)",
-  "main": "index.js",
-  "keywords": ["conan-skill", "file-reader", "local-files", "ai-agent"],
-  "author": "Hollat",
-  "license": "MIT"
-}
