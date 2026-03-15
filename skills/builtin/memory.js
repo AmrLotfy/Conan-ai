@@ -1,6 +1,6 @@
 /**
  * Built-in: Memory Tool
- * remember / recall / list / forget — same as HAIAH's MemoryTool
+ * remember / recall / list / forget
  */
 
 const memoryStore = require('../../core/memory')

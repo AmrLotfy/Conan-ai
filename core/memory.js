@@ -1,7 +1,7 @@
 /**
  * Long-Term Memory
  * Stores and retrieves facts across sessions using SQLite.
- * Same pattern as HAIAH's MemoryTool — remember/recall/list/forget.
+ * remember / recall / list / forget — persistent facts across sessions.
  */
 
 const { getDb } = require('./db')

@@ -1,6 +1,6 @@
 /**
  * Skill Registry
- * Same pattern as HAIAH's SkillRegistry.
+ * Loads built-in and external skill packages, exposes tool definitions to the LLM.
  * register() → has() → execute() → toolDefinitions()
  *
  * External skills are npm packages named conan-skill-*
