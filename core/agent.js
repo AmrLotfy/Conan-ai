@@ -1,6 +1,5 @@
 /**
  * Agent Loop — Heart of Conan
- * Same pattern as HAIAH's AiService::runAgentLoop()
  *
  * 1. Build messages (system prompt + history + user message)
  * 2. Call LLM with tools
