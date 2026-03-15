@@ -13,7 +13,7 @@ An open source Node.js CLI framework for building personal AI agents.
 Runs in your terminal. Remembers you. Searches the web. Reads your files. Fires reminders.
 **Local-first. No cloud. No accounts. Your key, your cost.**
 
-[**Install**](#install) · [**Skills**](#skills) · [**Connectors**](#connectors) · [**Build a Skill**](#build-your-own-skill)
+🌐 **[Landing Page](https://amrlotfy.github.io/Conan-ai/)** · [**Install**](#install) · [**Skills**](#skills) · [**Connectors**](#connectors) · [**Build a Skill**](#build-your-own-skill)
 
 </div>
 
