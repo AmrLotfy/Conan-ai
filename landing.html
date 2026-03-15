@@ -373,7 +373,7 @@
 
   <p class="hero-sub reveal d4" style="margin-top:2.2rem">
     مساعد AI يعمل على جهازك مباشرةً. يتذكر كل شيء،
-    يبحث في الويب، يقرأ ملفاتك، وينفّذ المهام قبل ما تكمل السؤال.
+    يبحث في الويب، يقرأ ملفاتك، يكتب الكود ويصحّحه، وينفّذ المهام قبل ما تكمل السؤال.
     <strong>مفتوح المصدر، محلي بالكامل.</strong>
   </p>
 
@@ -404,7 +404,7 @@
   <p class="section-label">الأدلة لا تكذب</p>
   <div class="stats-row" style="margin-top:1rem">
     <div class="stat">
-      <div class="stat-num">9+</div>
+      <div class="stat-num">10+</div>
       <div class="stat-label">مهارة جاهزة</div>
     </div>
     <div class="stat">
@@ -484,6 +484,13 @@
         <div><span style="color:#2ecc71">You:</span> <span class="t-out">ذكّرني بعد ساعة بمراجعة الـ PR</span></div>
         <div><span style="color:var(--gold)">Conan:</span> <span class="t-green-text">⏰ تم! سأذكّرك الساعة 6:00 م بـ "مراجعة الـ PR".</span></div>
         <br>
+        <div><span style="color:#2ecc71">You:</span> <span class="t-out">اكتب دالة Python تتحقق إن العدد أولي</span></div>
+        <div><span style="color:var(--gold)">Conan:</span> <span class="t-out">def is_prime(n):</span></div>
+        <div class="t-out">&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#818cf8">if</span> n &lt;= 1: <span style="color:#818cf8">return</span> False</div>
+        <div class="t-out">&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#818cf8">for</span> i <span style="color:#818cf8">in</span> range(2, int(n**.5)+1):</div>
+        <div class="t-out">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#818cf8">if</span> n % i == 0: <span style="color:#818cf8">return</span> False</div>
+        <div class="t-out">&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#818cf8">return</span> True</div>
+        <br>
         <div><span style="color:#2ecc71">You:</span> <span class="t-dim t-blink">█</span></div>
       </div>
     </div>
@@ -558,6 +565,12 @@
       <div class="sk-desc">شغّل CONAN كبوت Telegram — أوامر من أي مكان</div>
       <span class="sk-tag sk-builtin">مدمج</span>
     </div>
+    <div class="skill-card" style="border-color:rgba(99,102,241,0.3)">
+      <div class="sk-icon">💻</div>
+      <div class="sk-name">مساعد الكود</div>
+      <div class="sk-desc">يكتب، يراجع، يصحّح الأكواد بكل اللغات — بدون أي إعداد</div>
+      <span class="sk-tag" style="background:rgba(99,102,241,0.15);color:#818cf8">LLM مدمج</span>
+    </div>
   </div>
 
   <div style="text-align:center;margin-top:3rem">
@@ -609,6 +622,12 @@
       <div class="card-title">خصوصية محلية كاملة</div>
       <div class="card-desc">يعمل على جهازك. SQLite محلي. لا سيرفر خارجي، لا اشتراك، بياناتك ملكك.</div>
       <span class="card-tag">PRIVATE BY DEFAULT</span>
+    </div>
+    <div class="card" style="border-color:rgba(99,102,241,0.2)">
+      <div class="card-icon">💻</div>
+      <div class="card-title">مساعد برمجي كامل</div>
+      <div class="card-desc">اسأله يكتب لك كود، يراجع Pull Request، يصحّح bug، يشرح خوارزمية — بكل اللغات دون أي إعداد. الـ LLM نفسه يتولّى المهمة.</div>
+      <span class="card-tag" style="background:rgba(99,102,241,0.12);color:#818cf8;border:none">CODING ASSISTANT</span>
     </div>
   </div>
 </section>
