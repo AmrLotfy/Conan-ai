@@ -15,11 +15,22 @@
     "cli",
     "llm",
     "personal-assistant",
-    "skills"
+    "skills",
+    "conan-ai",
+    "openai",
+    "anthropic",
+    "openrouter"
   ],
-  "author": "Hollat",
+  "author": "Amr Lotfy",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AmrLotfy/Conan-ai.git"
+  },
+  "homepage": "https://github.com/AmrLotfy/Conan-ai#readme",
+  "bugs": { "url": "https://github.com/AmrLotfy/Conan-ai/issues" },
   "type": "commonjs",
+  "engines": { "node": ">=18" },
   "dependencies": {
     "axios": "^1.13.6",
     "better-sqlite3": "^12.8.0",
@@ -27,6 +38,7 @@
     "commander": "^14.0.3",
     "grammy": "^1.41.1",
     "inquirer": "^8.2.7",
+    "node-notifier": "^10.0.1",
     "ora": "^5.4.1"
   }
 }
