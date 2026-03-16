@@ -10,12 +10,14 @@ const chalk       = require('chalk')
 const inquirer    = require('inquirer')
 const config      = require('../core/config')
 
+const { version } = require('../package.json')
+
 const program = new Command()
 
 program
   .name('conan')
   .description('🔍 Conan — Personal AI Agent Framework')
-  .version('0.1.0')
+  .version(version)
 
 // ─── conan init ──────────────────────────────────────────────────────────────
 program
@@ -127,18 +129,51 @@ program
         when:    (a) => a.model === '__other__',
         validate: v => v.trim().length > 0 ? true : 'Model name is required',
       },
+      // ── Skills setup ──────────────────────────────────────────────────────
       {
         type:    'confirm',
         name:    'wantWeather',
-        message: 'Do you want to enable weather? (free API key from openweathermap.org)',
+        message: 'Enable weather skill? (free key at openweathermap.org)',
         default: !!existing.weatherKey,
       },
       {
         type:    'input',
         name:    'weatherKey',
-        message: 'OpenWeatherMap API key (press Enter to skip and add later):',
+        message: 'OpenWeatherMap API key:',
         default: existing.weatherKey || '',
         when:    (a) => a.wantWeather,
+      },
+      {
+        type:    'confirm',
+        name:    'wantWebSearch',
+        message: 'Enable web search skill? (free key at tavily.com)',
+        default: !!existing.tavilyKey,
+      },
+      {
+        type:    'input',
+        name:    'tavilyKey',
+        message: 'Tavily API key:',
+        default: existing.tavilyKey || '',
+        when:    (a) => a.wantWebSearch,
+      },
+      {
+        type:    'confirm',
+        name:    'wantNews',
+        message: 'Enable news skill? (free key at newsapi.org)',
+        default: !!existing.newsApiKey,
+      },
+      {
+        type:    'input',
+        name:    'newsApiKey',
+        message: 'NewsAPI key:',
+        default: existing.newsApiKey || '',
+        when:    (a) => a.wantNews,
+      },
+      {
+        type:    'confirm',
+        name:    'wantFileReader',
+        message: 'Enable file reader skill? (read & summarize local files — no API key needed)',
+        default: (existing.skills || []).includes('conan-skill-file-reader'),
       },
     ])
 
@@ -158,32 +193,80 @@ program
     if (answers.provider === 'anthropic' && answers.anthropicKey)
       finalConfig.anthropicKey = answers.anthropicKey.trim()
 
-    // Save weather key if provided
+    finalConfig.skills = finalConfig.skills || []
+
+    // Weather
     if (answers.wantWeather && answers.weatherKey?.trim()) {
       finalConfig.weatherKey = answers.weatherKey.trim()
-      // Auto-register weather skill if not already in list
-      finalConfig.skills = finalConfig.skills || []
-      if (!finalConfig.skills.includes('conan-skill-weather')) {
+      if (!finalConfig.skills.includes('conan-skill-weather'))
         finalConfig.skills.push('conan-skill-weather')
-      }
+    }
+
+    // Web Search
+    if (answers.wantWebSearch && answers.tavilyKey?.trim()) {
+      finalConfig.tavilyKey = answers.tavilyKey.trim()
+      if (!finalConfig.skills.includes('conan-skill-web-search'))
+        finalConfig.skills.push('conan-skill-web-search')
+    }
+
+    // News
+    if (answers.wantNews && answers.newsApiKey?.trim()) {
+      finalConfig.newsApiKey = answers.newsApiKey.trim()
+      if (!finalConfig.skills.includes('conan-skill-news'))
+        finalConfig.skills.push('conan-skill-news')
+    }
+
+    // File Reader (no key needed)
+    if (answers.wantFileReader) {
+      if (!finalConfig.skills.includes('conan-skill-file-reader'))
+        finalConfig.skills.push('conan-skill-file-reader')
+    } else {
+      finalConfig.skills = finalConfig.skills.filter(s => s !== 'conan-skill-file-reader')
     }
 
     config.save(finalConfig)
 
-    console.log('')
-    console.log(chalk.green('  ✅ Conan is ready!'))
-    console.log(chalk.gray(`  Config saved to: ${config.CONFIG_FILE}`))
+    // Install any newly added skill packages
+    const { execSync } = require('child_process')
+    const skillsToInstall = []
+    if (answers.wantWeather    && answers.weatherKey?.trim())  skillsToInstall.push('conan-skill-weather')
+    if (answers.wantWebSearch  && answers.tavilyKey?.trim())   skillsToInstall.push('conan-skill-web-search')
+    if (answers.wantNews       && answers.newsApiKey?.trim())  skillsToInstall.push('conan-skill-news')
+    if (answers.wantFileReader)                                skillsToInstall.push('conan-skill-file-reader')
 
-    if (answers.wantWeather && !answers.weatherKey?.trim()) {
+    if (skillsToInstall.length > 0) {
       console.log('')
-      console.log(chalk.yellow('  ⚡ Weather skipped — add it anytime:'))
-      console.log(chalk.gray('     1. Get a free key at openweathermap.org'))
-      console.log(chalk.gray('     2. Run: conan config set weatherKey YOUR_KEY'))
+      console.log(chalk.cyan('  Installing skill packages...'))
+      try {
+        execSync(`npm install -g ${skillsToInstall.join(' ')}`, { stdio: 'inherit' })
+      } catch {
+        console.log(chalk.yellow('  ⚠ Some skills failed to install. Run "conan skill install <name>" manually.'))
+      }
+    }
+
+    // ── Summary ──────────────────────────────────────────────────────────────
+    const activeSkills = ['time', 'memory', 'reminder', 'url-reader', ...finalConfig.skills.map(s => s.replace('conan-skill-', ''))]
+    const notInstalled = []
+    if (!answers.wantWeather   || !answers.weatherKey?.trim())  notInstalled.push('conan-skill-weather')
+    if (!answers.wantWebSearch || !answers.tavilyKey?.trim())   notInstalled.push('conan-skill-web-search')
+    if (!answers.wantNews      || !answers.newsApiKey?.trim())  notInstalled.push('conan-skill-news')
+    if (!answers.wantFileReader)                                notInstalled.push('conan-skill-file-reader')
+
+    console.log('')
+    console.log(chalk.green.bold('  ✅ Conan is ready!\n'))
+    console.log(chalk.white('  Active skills:   ') + chalk.cyan(activeSkills.join(', ')))
+
+    if (notInstalled.length > 0) {
+      console.log('')
+      console.log(chalk.gray('  More skills available:'))
+      notInstalled.forEach(s => {
+        console.log(chalk.gray(`    conan skill install ${s}`))
+      })
+      console.log(chalk.gray('    conan skill install conan-skill-gmail  (+ run: conan-gmail-auth)'))
     }
 
     console.log('')
-    console.log(chalk.white('  Start chatting:'))
-    console.log(chalk.cyan('  conan chat'))
+    console.log(chalk.white('  Start chatting:  ') + chalk.cyan('conan chat'))
     console.log('')
   })
 
@@ -495,6 +578,66 @@ daemonCmd.action(() => {
   const daemon = require('../core/daemon')
   daemon.start()
 })
+
+// ─── conan update ────────────────────────────────────────────────────────────
+program
+  .command('update')
+  .description('Update Conan and all installed skills to latest versions')
+  .action(async () => {
+    const { execSync } = require('child_process')
+    const axios        = require('axios')
+    const ora          = require('ora')
+
+    console.log('')
+
+    // ── Check latest version ─────────────────────────────────────────────────
+    const spinner = ora({ text: 'Checking for updates...', color: 'cyan' }).start()
+
+    let latestVersion
+    try {
+      const res = await axios.get('https://registry.npmjs.org/conan-ai/latest', { timeout: 8000 })
+      latestVersion = res.data.version
+    } catch {
+      spinner.stop()
+      console.log(chalk.yellow('  ⚠ Could not reach npm registry. Check your connection.\n'))
+      process.exit(1)
+    }
+
+    spinner.stop()
+
+    if (latestVersion === version) {
+      console.log(chalk.green(`  ✅ Conan is up to date (v${version})\n`))
+    } else {
+      console.log(chalk.cyan(`  New version available: ${chalk.white.bold(`v${latestVersion}`)} ${chalk.gray(`(current: v${version})`)}`))
+      console.log(chalk.gray('  Updating conan-ai...\n'))
+      try {
+        execSync('npm install -g conan-ai@latest', { stdio: 'inherit' })
+        console.log(chalk.green(`\n  ✅ Conan updated to v${latestVersion}\n`))
+      } catch {
+        console.log(chalk.red('\n  Update failed. Try manually: npm install -g conan-ai@latest\n'))
+        process.exit(1)
+      }
+    }
+
+    // ── Update installed skills ───────────────────────────────────────────────
+    const cfg = config.load()
+    const skills = cfg.skills || []
+
+    if (skills.length === 0) {
+      console.log(chalk.gray('  No extra skills installed.\n'))
+      return
+    }
+
+    console.log(chalk.cyan('  Updating installed skills...'))
+    console.log(chalk.gray(`  Skills: ${skills.join(', ')}\n`))
+
+    try {
+      execSync(`npm install -g ${skills.join(' ')}`, { stdio: 'inherit' })
+      console.log(chalk.green('\n  ✅ All skills updated.\n'))
+    } catch {
+      console.log(chalk.yellow('\n  ⚠ Some skills failed to update. Try manually: npm install -g <skill-name>\n'))
+    }
+  })
 
 program.parse(process.argv)
 

@@ -1,6 +1,6 @@
 {
   "name": "conan-ai",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "An open source Node.js framework for building personal AI agents with a plugin skill system",
   "main": "index.js",
   "bin": {
