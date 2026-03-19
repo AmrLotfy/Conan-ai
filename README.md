@@ -283,4 +283,4 @@ Conan follows the **6-pillar AI agent architecture**:
 
 ## License
 
-MIT · Built by [Amr Lotfy](https://github.com/AmrLotfy)
+MIT · Built by [Amr Lotfy](https://www.linkedin.com/in/amr-lotfy-saleh/)
